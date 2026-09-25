@@ -7,6 +7,12 @@ Firmware for the ESP32 display that renders data received from the agent.
   [U8g2](https://github.com/olikraus/u8g2) for monochrome displays
   ([ADR 0006](../docs/adr/0006-multi-board-firmware.md)).
 
+## Previewing the UI without hardware
+
+[`simulator/`](simulator/) has two standalone HTML files — the on-device
+128×64 screen, and the Wi-Fi/agent configuration page — for judging the UI
+before flashing anything. See [`simulator/README.md`](simulator/README.md).
+
 ## Supported boards
 
 | Board                                                                 | Environment             | Display              | Input      |
@@ -49,6 +55,7 @@ pio run -e heltec_wifi_kit_32_v3 -t upload -t monitor
 ## Roadmap
 
 - [x] Boot screen
+- [x] Browser-based UI simulator (screens and setup page, no hardware needed)
 - [ ] Wi-Fi provisioning (captive portal, Improv over USB)
 - [ ] Agent discovery (mDNS, UDP fallback)
 - [ ] WebSocket connection and pairing

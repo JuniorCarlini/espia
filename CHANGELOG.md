@@ -116,4 +116,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   those) by URL and token through the device's own configuration page.
   Design only — firmware networking isn't implemented yet.
 
+- Added a browser-based device UI simulator (`firmware/simulator/`): a
+  128×64 monochrome OLED preview (real supported-board resolution, PRG
+  button navigation between screens) and the Wi-Fi/agent configuration
+  page ADR 0015 designed — both standalone HTML, no build step, for
+  judging the device's UI before any firmware exists.
+
+- Added a boot splash to the desktop agent: the dot-matrix wordmark
+  assembles dot-by-dot in a fresh random order every launch, blinks three
+  times, then fades into the dashboard once real metrics have loaded.
+
 - Renamed the project from ESPHub to **espia**.

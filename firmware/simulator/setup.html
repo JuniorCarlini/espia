@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>espia — setup page simulator</title>
+    <style>
+      :root {
+        --canvas: #0a0a0c;
+        --surface: #17181b;
+        --surface-raised: #1e1f23;
+        --border: #ffffff1a;
+        --ink: #f5f6f2;
+        --ink-muted: #9a9ca3;
+        --ink-faint: #6b6d74;
+        --brand: #5cec01;
+        --brand-dim: #5cec0126;
+        --critical: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        display: flex;
+        justify-content: center;
+        padding: 28px 16px 60px;
+      }
+
+      /* This page is what a phone's browser shows — either the device's own
+         captive-portal AP on first boot, or its normal LAN address
+         afterward. Frame width caps at phone width on purpose, even on a
+         wide screen. See docs/adr/0015-device-provisioning.md. */
+      main {
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+
+      .brand .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--brand);
+        box-shadow: 0 0 10px 1px var(--brand-dim);
+      }
+
+      .brand span {
+        font-family: ui-monospace, monospace;
+        font-size: 1rem;
+        letter-spacing: 0.02em;
+      }
+
+      .lede {
+        color: var(--ink-faint);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin: 4px 0 24px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 4px;
+        margin-bottom: 20px;
+      }
+
+      .tab {
+        flex: 1;
+        text-align: center;
+        padding: 8px 0;
+        border-radius: 9px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--ink-muted);
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+      }
+
+      .tab.is-active {
+        background: var(--surface-raised);
+        color: var(--ink);
+      }
+
+      .panel {
+        display: none;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .panel.is-active {
+        display: flex;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .card h2 {
+        font-size: 0.85rem;
+        margin: 0 0 3px;
+      }
+
+      .card .hint {
+        color: var(--ink-faint);
+        font-size: 0.75rem;
+        margin: 0 0 12px;
+        line-height: 1.5;
+      }
+
+      .network-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .network {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        background: var(--surface-raised);
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+
+      .network:hover {
+        border-color: var(--border);
+      }
+
+      .network.is-selected {
+        border-color: var(--brand);
+        background: var(--brand-dim);
+      }
+
+      .network .name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .signal {
+        display: flex;
+        align-items: flex-end;
+        gap: 1.5px;
+        height: 10px;
+      }
+
+      .signal i {
+        width: 3px;
+        background: var(--ink-faint);
+        border-radius: 1px;
+        display: block;
+      }
+
+      .signal i:nth-child(1) {
+        height: 3px;
+      }
+      .signal i:nth-child(2) {
+        height: 5px;
+      }
+      .signal i:nth-child(3) {
+        height: 7px;
+      }
+      .signal i:nth-child(4) {
+        height: 10px;
+      }
+
+      .network[data-bars="3"] .signal i:nth-child(4) {
+        background: var(--ink-faint);
+        opacity: 0.3;
+      }
+      .network[data-bars="2"] .signal i:nth-child(3),
+      .network[data-bars="2"] .signal i:nth-child(4) {
+        opacity: 0.3;
+      }
+
+      .network .bars-on {
+        background: var(--ink-muted);
+      }
+
+      .lock {
+        color: var(--ink-faint);
+        font-size: 0.7rem;
+      }
+
+      label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--ink-muted);
+        margin: 14px 0 6px;
+      }
+
+      input[type="password"],
+      input[type="text"] {
+        width: 100%;
+        background: var(--canvas);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--ink);
+        font-size: 0.9rem;
+        font-family: inherit;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--brand);
+      }
+
+      button.primary {
+        width: 100%;
+        margin-top: 16px;
+        background: var(--brand);
+        color: #0a0a0c;
+        border: none;
+        border-radius: 10px;
+        padding: 11px 0;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      button.primary:hover {
+        filter: brightness(1.08);
+      }
+
+      button.ghost {
+        width: 100%;
+        margin-top: 10px;
+        background: transparent;
+        color: var(--ink-muted);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 0;
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .agent-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border-radius: 10px;
+        background: var(--surface-raised);
+        margin-bottom: 8px;
+      }
+
+      .agent-row .meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .agent-row .name {
+        font-size: 0.86rem;
+      }
+
+      .agent-row .detail {
+        font-size: 0.72rem;
+        color: var(--ink-faint);
+      }
+
+      .tag {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 3px 8px;
+        border-radius: 999px;
+      }
+
+      .tag.local {
+        background: var(--brand-dim);
+        color: var(--brand);
+      }
+
+      .tag.remote {
+        background: #3b82f626;
+        color: #60a5fa;
+      }
+
+      .add-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--brand);
+        font-size: 0.82rem;
+        cursor: pointer;
+        margin-top: 4px;
+      }
+
+      .add-form {
+        display: none;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 8px;
+      }
+
+      .add-form.is-open {
+        display: flex;
+      }
+
+      footer {
+        color: var(--ink-faint);
+        font-size: 0.72rem;
+        text-align: center;
+        line-height: 1.6;
+        margin-top: 28px;
+      }
+
+      footer a {
+        color: var(--ink-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="brand">
+        <span class="dot"></span>
+        <span>espia-setup</span>
+      </div>
+      <p class="lede">
+        Served by the device itself — its own Wi-Fi access point on first
+        boot, or its normal address on your network afterward. See
+        <a href="../../docs/adr/0015-device-provisioning.md" style="color: inherit">ADR 0015</a>.
+      </p>
+
+      <div class="tabs">
+        <button class="tab is-active" data-tab="wifi">Wi-Fi</button>
+        <button class="tab" data-tab="agents">Agents</button>
+      </div>
+
+      <section class="panel is-active" id="panel-wifi">
+        <div class="card">
+          <h2>Choose a network</h2>
+          <p class="hint">Scanned just now. Tap yours, enter the password, connect.</p>
+          <div class="network-list" id="network-list">
+            <div class="network is-selected" data-bars="4">
+              <span class="name">🏠 Home-5G</span>
+              <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i></span>
+            </div>
+            <div class="network" data-bars="3">
+              <span class="name">Studio-2.4</span>
+              <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i><i></i></span>
+            </div>
+            <div class="network" data-bars="2">
+              <span class="name">Guest-Network</span>
+              <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i></i><i></i></span>
+            </div>
+          </div>
+
+          <label for="wifi-password">Password for “Home-5G”</label>
+          <input type="password" id="wifi-password" placeholder="••••••••" autocomplete="off" />
+
+          <button class="primary" id="wifi-connect">Connect</button>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-agents">
+        <div class="card">
+          <h2>Local — found automatically</h2>
+          <p class="hint">On the same network as this device, no typing needed.</p>
+          <div class="agent-row">
+            <div class="meta">
+              <span class="name">Junior's MacBook Pro</span>
+              <span class="detail">discovered via mDNS · 192.168.1.42</span>
+            </div>
+            <span class="tag local">Local</span>
+          </div>
+          <div class="agent-row">
+            <div class="meta">
+              <span class="name">Office Workstation</span>
+              <span class="detail">discovered via mDNS · 192.168.1.58</span>
+            </div>
+            <span class="tag local">Local</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Remote — added by URL</h2>
+          <p class="hint">Not on this network — a VPS or Docker host running the headless agent.</p>
+          <div class="agent-row">
+            <div class="meta">
+              <span class="name">checksafe-prod</span>
+              <span class="detail">checksafe-prod-espia.toa9ja.easypanel.host</span>
+            </div>
+            <span class="tag remote">Remote</span>
+          </div>
+
+          <div class="add-toggle" id="add-toggle">+ Add a remote agent</div>
+          <div class="add-form" id="add-form">
+            <label for="agent-url">Agent URL</label>
+            <input type="text" id="agent-url" placeholder="https://your-vps.example.com" />
+            <label for="agent-token">Token</label>
+            <input type="password" id="agent-token" placeholder="ESPIA_TOKEN value" autocomplete="off" />
+            <button class="primary" id="agent-add">Add agent</button>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        Example data, not live — this is a UI preview only; nothing here
+        submits anywhere. See
+        <a href="../../docs/adr/0002-device-discovery.md">ADR 0002</a>,
+        <a href="../../docs/adr/0007-multi-agent-pairing.md">ADR 0007</a>,
+        and <a href="../../docs/adr/0013-headless-agent.md">ADR 0013</a>,
+        and <a href="display.html">display.html</a> for the device screen
+        simulator.
+      </footer>
+    </main>
+
+    <script>
+      // Tabs
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((t) => t.classList.remove("is-active"));
+          document.querySelectorAll(".panel").forEach((p) => p.classList.remove("is-active"));
+          tab.classList.add("is-active");
+          document.getElementById(`panel-${tab.dataset.tab}`).classList.add("is-active");
+        });
+      });
+
+      // Network selection
+      document.querySelectorAll(".network").forEach((row) => {
+        row.addEventListener("click", () => {
+          document.querySelectorAll(".network").forEach((r) => r.classList.remove("is-selected"));
+          row.classList.add("is-selected");
+          const name = row.querySelector(".name").textContent.trim();
+          document.getElementById("wifi-password").previousElementSibling.textContent = `Password for “${name}”`;
+        });
+      });
+
+      // Add-remote-agent form toggle
+      document.getElementById("add-toggle").addEventListener("click", () => {
+        document.getElementById("add-form").classList.toggle("is-open");
+      });
+
+      // Preview-only actions: this page never actually submits anywhere —
+      // just a label swap, so trying it doesn't feel like a dead click.
+      function previewOnly(button, doneLabel) {
+        const original = button.textContent;
+        button.textContent = doneLabel;
+        button.disabled = true;
+        setTimeout(() => {
+          button.textContent = original;
+          button.disabled = false;
+        }, 1600);
+      }
+
+      document.getElementById("wifi-connect").addEventListener("click", (e) => {
+        e.preventDefault();
+        previewOnly(e.currentTarget, "Preview only — no real device here");
+      });
+      document.getElementById("agent-add").addEventListener("click", (e) => {
+        e.preventDefault();
+        previewOnly(e.currentTarget, "Preview only — no real device here");
+      });
+    </script>
+  </body>
+</html>

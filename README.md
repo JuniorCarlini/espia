@@ -49,7 +49,7 @@ your desk.
 | Desktop agent (macOS) — metrics, Claude usage, weather, settings | **Working**, built with [Tauri](https://tauri.app/) |
 | Headless agent (Linux, for a VPS or Docker host)              | **Working** — see [running it on a VPS](#running-it-on-a-vps-or-docker-host) |
 | Desktop agent (Windows, Linux)                                 | Planned |
-| ESP32 firmware — boot screen only                              | In progress |
+| ESP32 firmware — boot screen only, UI previewable in a [browser simulator](firmware/simulator/) | In progress |
 | Device discovery, pairing, and live dashboards                 | Designed ([ADR 0002](docs/adr/0002-device-discovery.md), [ADR 0007](docs/adr/0007-multi-agent-pairing.md), [ADR 0015](docs/adr/0015-device-provisioning.md)), not built |
 
 Every decision behind these pieces — and why — is written down as it's
@@ -133,7 +133,8 @@ espia supports several ESP32 boards. See the
 - [ ] ESP32 firmware: discovery, pairing, and live dashboards
 - [ ] Multiple screens with touch / button navigation
 - [ ] Over-the-air (OTA) firmware updates from the agent
-- [ ] In-browser device simulator for UI development without hardware
+- [x] In-browser [device UI simulator](firmware/simulator/) for UI
+      development without hardware
 
 ## Repository layout
 
