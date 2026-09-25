@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 
 #include "boards/board.h"
+#include "net/pairing_store.h"
 #include "version.h"
 
 namespace net {
@@ -49,6 +50,12 @@ bool AgentLink::hasNewMetrics() {
     return had;
 }
 
+bool AgentLink::hasNewPairingCode() {
+    bool had = hasNewPairingCode_;
+    hasNewPairingCode_ = false;
+    return had;
+}
+
 void AgentLink::handleEvent(WStype_t type, uint8_t *payload, size_t length) {
     switch (type) {
         case WStype_CONNECTED:
@@ -86,15 +93,28 @@ void AgentLink::handleMessage(uint8_t *payload, size_t length) {
         agentName_ = String((const char *)(doc["name"] | agent_.name.c_str()));
         status_ = LinkStatus::Connected;
         failedAttempts_ = 0;
-        Serial.printf("espia: paired session established with %s\n", agentName_.c_str());
+        Serial.printf("espia: session established with %s\n", agentName_.c_str());
         return;
     }
 
     if (strcmp(type, "pair_required") == 0) {
-        // Pairing isn't implemented yet (a later build step) — today's
-        // agent doesn't send this either, but log it clearly in case that
-        // changes before the firmware side catches up.
-        Serial.println("espia: agent requires pairing, which isn't implemented yet");
+        status_ = LinkStatus::Pairing;
+        uint32_t code = random(0, 1000000);
+        char buf[7];
+        snprintf(buf, sizeof(buf), "%06lu", static_cast<unsigned long>(code));
+        pairingCode_ = buf;
+        hasNewPairingCode_ = true;
+        Serial.printf("espia: pairing required, code %s\n", pairingCode_.c_str());
+        sendPairRequest();
+        return;
+    }
+
+    if (strcmp(type, "paired") == 0) {
+        token_ = String((const char *)(doc["token"] | ""));
+        pairing_store::save(agent_.agentId, agent_.name, token_);
+        Serial.println("espia: paired — token saved, waiting for welcome");
+        // `welcome` follows right after (protocol §4.2 step 4) and moves
+        // status_ to Connected — nothing else to do here.
         return;
     }
 
@@ -133,6 +153,17 @@ void AgentLink::sendHello() {
     display["height"] = ESPIA_DISPLAY_HEIGHT;
     display["mono"] = static_cast<bool>(ESPIA_DISPLAY_MONO);
     display["touch"] = static_cast<bool>(ESPIA_DISPLAY_TOUCH);
+
+    String out;
+    serializeJson(doc, out);
+    ws_.sendTXT(out);
+}
+
+void AgentLink::sendPairRequest() {
+    JsonDocument doc;
+    doc["v"] = 1;
+    doc["type"] = "pair_request";
+    doc["code"] = pairingCode_;
 
     String out;
     serializeJson(doc, out);

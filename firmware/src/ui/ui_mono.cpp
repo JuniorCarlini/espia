@@ -82,6 +82,27 @@ void showDiscovering() {
     showStatusScreen("Finding agent...");
 }
 
+void showPairingCode(const char *code) {
+    display.clearBuffer();
+
+    if (isSmallPanel()) {
+        display.setFont(u8g2_font_4x6_tr);
+        drawCentered(9, "Enter on agent:");
+
+        display.setFont(u8g2_font_7x14B_tr);
+        drawCentered(28, code);
+    } else {
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(18, "Enter this code");
+        drawCentered(30, "on the agent:");
+
+        display.setFont(u8g2_font_helvB18_tr);
+        drawCentered(56, code);
+    }
+
+    display.sendBuffer();
+}
+
 void showConnectionStatus(bool connected) {
     // Connected has nothing of its own to show — showMetrics takes over
     // immediately once a session is established. This screen only matters

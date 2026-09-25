@@ -7,6 +7,7 @@
 #include "device_id.h"
 #include "net/agent_link.h"
 #include "net/discovery.h"
+#include "net/pairing_store.h"
 #include "ui/ui.h"
 #include "version.h"
 // Build-step-3 placeholder: hardcoded WiFi, no captive portal yet (that's
@@ -49,9 +50,8 @@ void beginDiscovery() {
 
     const net::AgentInfo &chosen = agents[0];
     Serial.printf("espia: found %d agent(s), connecting to %s\n", (int)agents.size(), chosen.name.c_str());
-    // No stored token yet — pairing isn't implemented (a later build
-    // step), and today's agent welcomes unconditionally either way.
-    agentLink.begin(chosen, device_id::get(), "");
+    String storedToken = net::pairing_store::tokenFor(chosen.agentId);
+    agentLink.begin(chosen, device_id::get(), storedToken);
     state = State::LinkRunning;
 }
 
@@ -90,6 +90,9 @@ void loop() {
 
         case State::LinkRunning: {
             agentLink.loop();
+            if (agentLink.hasNewPairingCode()) {
+                ui::showPairingCode(agentLink.pairingCode().c_str());
+            }
             if (agentLink.hasNewMetrics()) {
                 ui::showMetrics(agentLink.lastMetrics(), agentLink.agentName().c_str());
             }

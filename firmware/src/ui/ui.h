@@ -22,6 +22,10 @@ void showWifiConnecting();
 // Shown while searching for agents on the network (protocol §1.1-§1.2).
 void showDiscovering();
 
+// Shown during pairing (protocol §4.2): the 6-digit code this device
+// generated, which a human needs to read here and type into the agent.
+void showPairingCode(const char *code);
+
 // `connected` true once a session is fully established (`welcome`
 // received); false while reconnecting after a drop.
 void showConnectionStatus(bool connected);
