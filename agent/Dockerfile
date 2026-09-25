@@ -1,5 +1,6 @@
-# Build from the `agent/` directory:
-#   docker build -t espia-headless -f headless/Dockerfile .
+# Build from the `agent/` directory (Docker context = this monorepo's
+# Cargo workspace, so the headless crate can see its `../core` sibling):
+#   docker build -t espia-headless .
 # See docs/adr/0013-headless-agent.md.
 
 FROM rust:1-slim AS builder

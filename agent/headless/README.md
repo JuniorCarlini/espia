@@ -14,8 +14,12 @@ ESPIA_TOKEN=$(openssl rand -hex 32) cargo run -p espia-headless
 
 or with Docker:
 
+Run from `agent/` — the Docker context has to include the sibling `core/`
+crate, not just `headless/`:
+
 ```sh
-docker build -t espia-headless -f headless/Dockerfile .
+cd agent
+docker build -t espia-headless .
 docker run -p 8080:8080 -e ESPIA_TOKEN="$(openssl rand -hex 32)" espia-headless
 ```
 
