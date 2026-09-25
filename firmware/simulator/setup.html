@@ -11,6 +11,12 @@
          CDN at all, so it would need Tucano vendored in, same as the agent
          does, not loaded like this. -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tucano@0.36.0/dist/tucano.min.css" />
+    <!-- Bitcount Grid Single — the brand wordmark's font, same as the logo
+         design (see docs/assets/). Google Fonts, same CDN-for-preview
+         reasoning as Tucano above. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@400&display=swap" rel="stylesheet" />
     <style>
       :root {
         --canvas: #0a0a0c;
@@ -102,10 +108,12 @@
         box-shadow: 0 0 10px 1px var(--brand-dim);
       }
 
-      .brand span {
-        font-family: ui-monospace, monospace;
-        font-size: 1rem;
-        letter-spacing: 0.02em;
+      .brand span:not(.dot) {
+        font-family: "Bitcount Grid Single", ui-monospace, monospace;
+        font-weight: 400;
+        font-size: 1.15rem;
+        color: var(--brand);
+        letter-spacing: 0;
       }
 
       .lede {
