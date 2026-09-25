@@ -23,21 +23,41 @@ docker build -t espia-headless .
 docker run -p 8080:8080 -e ESPIA_TOKEN="$(openssl rand -hex 32)" espia-headless
 ```
 
-| Env var        | Default     | Purpose                                            |
-| -------------- | ----------- | --------------------------------------------------- |
-| `ESPIA_TOKEN` | *(none)*    | Required to read `/metrics`. Unset means every request to it is rejected — see below. |
-| `ESPIA_BIND`  | `0.0.0.0:8080` | Address and port to listen on.                  |
+| Env var               | Default              | Purpose                                            |
+| --------------------- | -------------------- | --------------------------------------------------- |
+| `ESPIA_TOKEN`         | *(none)*             | Required to read `/metrics` and `/containers`. Unset means every request to them is rejected — see below. |
+| `ESPIA_BIND`          | `0.0.0.0:8080`       | Address and port to listen on.                     |
+| `ESPIA_DOCKER_SOCKET` | `/var/run/docker.sock` | Docker socket path, for `/containers`.           |
 
 ## Endpoints
 
 - `GET /health` — always `200 ok`, no token required. Point a Docker or
   orchestrator health check at this.
 - `GET /metrics` — the current system snapshot as JSON (CPU, memory,
-  disks, network, and the top processes by CPU), requires
+  disks, network, and top processes), requires
   `Authorization: Bearer <ESPIA_TOKEN>`. Without a valid token: `401`.
+  Inside a container, `top_processes` only ever shows this agent's own
+  processes — Docker's default PID namespace hides everything else. CPU,
+  memory, disk, and network totals aren't affected; see
+  [ADR 0014](../../docs/adr/0014-docker-container-stats.md).
+- `GET /containers` — every running container's CPU % and memory usage,
+  sorted highest CPU first, same token requirement as `/metrics`. Needs
+  `/var/run/docker.sock` mounted into the container — without it, this
+  returns `502` with an explanation rather than the container list.
+  **Read the Security model section below before mounting that socket.**
 
 ```sh
 curl -H "Authorization: Bearer $ESPIA_TOKEN" http://localhost:8080/metrics
+curl -H "Authorization: Bearer $ESPIA_TOKEN" http://localhost:8080/containers
+```
+
+To enable `/containers`, mount the socket when running the container:
+
+```sh
+docker run -p 8080:8080 \
+  -e ESPIA_TOKEN="$(openssl rand -hex 32)" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  espia-headless
 ```
 
 ## Security model
@@ -59,3 +79,12 @@ being deliberate about:
 - The token is sent as a plain bearer token — fine over a private network
   or behind a TLS-terminating proxy, not fine sent bare over the public
   internet.
+
+**`/containers` is a bigger trust boundary than the rest of this binary.**
+Mounting `/var/run/docker.sock` in gives this container root-equivalent
+control of the entire Docker host, not just read access to stats — see
+[ADR 0014](../../docs/adr/0014-docker-container-stats.md). Only mount it
+on a VPS you already fully control, never on shared or multi-tenant Docker
+infrastructure. Leaving the socket unmounted keeps the agent at
+[ADR 0013](../../docs/adr/0013-headless-agent.md)'s original, much smaller
+blast radius — `/metrics` and `/health` don't need it.

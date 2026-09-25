@@ -15,6 +15,8 @@ use espia_core::collectors::system::{SystemCollector, SystemMetrics};
 use serde::Serialize;
 use tiny_http::{Header, Method, Response, Server, StatusCode};
 
+mod docker;
+
 const TOKEN_ENV_VAR: &str = "ESPIA_TOKEN";
 const BIND_ENV_VAR: &str = "ESPIA_BIND";
 const DEFAULT_BIND: &str = "0.0.0.0:8080";
@@ -99,6 +101,32 @@ fn handle(
             let body = serde_json::to_string(&MetricsResponse { system, top_processes })
                 .unwrap_or_else(|_| r#"{"error":"failed to serialize metrics"}"#.to_string());
             (StatusCode(200), body, "application/json")
+        }
+        "/containers" => {
+            if !is_authorized(request, token) {
+                return (
+                    StatusCode(401),
+                    r#"{"error":"missing or invalid token"}"#.to_string(),
+                    "application/json",
+                );
+            }
+            match docker::container_stats() {
+                Ok(containers) => (
+                    StatusCode(200),
+                    serde_json::to_string(&containers)
+                        .unwrap_or_else(|_| r#"{"error":"failed to serialize container stats"}"#.to_string()),
+                    "application/json",
+                ),
+                // Most likely cause: /var/run/docker.sock isn't mounted into
+                // this container, or this container can't reach it — see
+                // docs/adr/0014-docker-container-stats.md.
+                Err(err) => (
+                    StatusCode(502),
+                    serde_json::to_string(&serde_json::json!({ "error": err }))
+                        .unwrap_or_else(|_| r#"{"error":"docker API request failed"}"#.to_string()),
+                    "application/json",
+                ),
+            }
         }
         _ => (StatusCode(404), not_found(), "application/json"),
     }

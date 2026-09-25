@@ -22,3 +22,4 @@ available number.
 | [0011](0011-lighter-polling.md)            | Poll the heaviest data every 2 seconds, not every 1 | Accepted |
 | [0012](0012-tucano.md)                     | Use Tucano for the settings dialog, select, and buttons | Accepted |
 | [0013](0013-headless-agent.md)             | A headless HTTP agent for VPS and Docker hosts | Accepted |
+| [0014](0014-docker-container-stats.md)     | Per-container stats via the Docker socket | Accepted |

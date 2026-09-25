@@ -82,3 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   server (`espia-headless`) exposing the same metrics as a token-gated
   `GET /metrics` endpoint, for running the agent on a VPS or Docker host
   with no display. See ADR 0013.
+
+- The headless agent now has a `GET /containers` endpoint showing
+  per-container CPU and memory usage (sorted highest first) for the
+  Docker host it's running on, matching `docker stats`. Opt-in: it needs
+  `/var/run/docker.sock` mounted in, which grants root-equivalent control
+  of the whole host — see ADR 0014 before enabling it.
+
+- Renamed the project from ESPHub to **espia**.
