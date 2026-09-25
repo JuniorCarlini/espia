@@ -1,6 +1,16 @@
-# espia
+<p align="center">
+  <img src="agent/src/assets/wordmark.png" alt="espia" width="320">
+</p>
 
-> A tiny desk display for your computer's vitals and AI usage — powered by an ESP32.
+<p align="center">
+  A tiny desk display for your computer's vitals and AI usage — powered by an ESP32.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-5cec01"></a>
+  <a href="docs/adr/"><img alt="ADRs" src="https://img.shields.io/badge/architecture-ADRs-5cec01"></a>
+  <a href="CONTRIBUTING.md"><img alt="Contributions welcome" src="https://img.shields.io/badge/contributions-welcome-5cec01"></a>
+</p>
 
 espia mirrors live information from your computer onto a small ESP32-driven
 screen sitting on your desk: CPU, memory, GPU, network, and AI usage
@@ -63,7 +73,7 @@ espia supports several ESP32 boards. See the
 
 | Path                     | Description                                   |
 | ------------------------ | --------------------------------------------- |
-| [`agent/`](agent/)       | Desktop agent (Windows, macOS, Linux)         |
+| [`agent/`](agent/)       | Desktop agent (Windows, macOS, Linux) and a headless variant for a VPS or Docker host |
 | [`firmware/`](firmware/) | ESP32 firmware                                |
 | [`protocol/`](protocol/) | Agent ↔ device protocol specification         |
 | [`docs/`](docs/)         | Architecture notes and decision records (ADR) |
@@ -73,6 +83,7 @@ espia supports several ESP32 boards. See the
 - [Architecture overview](docs/architecture.md)
 - [Protocol specification](protocol/README.md)
 - [Architecture Decision Records](docs/adr/)
+- [Deploying the headless agent to Easypanel](docs/deploy-easypanel.md)
 
 ## Contributing
 
