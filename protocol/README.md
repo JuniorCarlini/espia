@@ -68,6 +68,24 @@ simply runs that machinery once per paired agent instead of once.
   agents on the network are ignored unless the user explicitly starts pairing
   another (see [4.2](#42-pairing)).
 
+### 1.4 Remote agents (not on the local network)
+
+Sections 1.1–1.3 only find agents on the device's own subnet — mDNS and UDP
+broadcast both stop at the network boundary by design. A **remote agent** —
+a headless agent (see [ADR 0013](../docs/adr/0013-headless-agent.md))
+running on a VPS or any other host not on the device's LAN — cannot be
+discovered this way and is instead added directly, by URL and token, through
+the device's own configuration page rather than through discovery. See
+[ADR 0015](../docs/adr/0015-device-provisioning.md) for the full
+provisioning design; firmware support for it doesn't exist yet.
+
+A remote pairing is one more entry in the same pairing list [1.3](#13-choosing-an-agent)
+describes, but the device reaches it differently: polling
+`GET /metrics` (`Authorization: Bearer <token>`) on a timer, not a
+WebSocket connection from §2. The `metrics` payload it gets back is the
+same shape as [5.1](#51-metrics-agent--device) — a remote agent doesn't
+need its own message format, only a different way of arriving.
+
 ## 2. Transport
 
 - WebSocket (RFC 6455) at the path advertised by discovery (`/v1/ws`).

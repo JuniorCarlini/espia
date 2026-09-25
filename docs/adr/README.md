@@ -23,3 +23,4 @@ available number.
 | [0012](0012-tucano.md)                     | Use Tucano for the settings dialog, select, and buttons | Accepted |
 | [0013](0013-headless-agent.md)             | A headless HTTP agent for VPS and Docker hosts | Accepted |
 | [0014](0014-docker-container-stats.md)     | Per-container stats via the Docker socket | Accepted |
+| [0015](0015-device-provisioning.md)        | Device provisioning: Wi-Fi setup and adding remote agents | Accepted |

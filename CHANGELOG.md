@@ -107,4 +107,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hardened the headless agent's token check to a constant-time
   comparison, closing a theoretical timing side channel.
 
+- Wrote the Easypanel deployment guide (`docs/deploy-easypanel.md`) from
+  an actual end-to-end deployment.
+
+- Designed device provisioning (ADR 0015): a Wi-Fi captive portal for
+  first-time setup, and a way to add remote agents (a VPS running
+  `espia-headless`, not on the device's own network — mDNS can't reach
+  those) by URL and token through the device's own configuration page.
+  Design only — firmware networking isn't implemented yet.
+
 - Renamed the project from ESPHub to **espia**.
