@@ -74,7 +74,17 @@ fn is_authorized(request: &tiny_http::Request, token: Option<&str>) -> bool {
         .iter()
         .find(|header| header.field.as_str().as_str().eq_ignore_ascii_case("Authorization"))
         .and_then(|header| header.value.as_str().strip_prefix("Bearer "))
-        .is_some_and(|got| got == expected)
+        .is_some_and(|got| constant_time_eq(got.as_bytes(), expected.as_bytes()))
+}
+
+/// A plain `==` on the token would short-circuit at the first mismatched
+/// byte, which in theory leaks how many leading bytes of a guessed token
+/// were right through response timing. This always compares every byte.
+fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
 fn handle(
@@ -134,4 +144,24 @@ fn handle(
 
 fn not_found() -> String {
     r#"{"error":"not found"}"#.to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::constant_time_eq;
+
+    #[test]
+    fn constant_time_eq_matches_equal_slices() {
+        assert!(constant_time_eq(b"a-real-token", b"a-real-token"));
+    }
+
+    #[test]
+    fn constant_time_eq_rejects_different_content() {
+        assert!(!constant_time_eq(b"a-real-token", b"a-fake-token"));
+    }
+
+    #[test]
+    fn constant_time_eq_rejects_different_length() {
+        assert!(!constant_time_eq(b"short", b"a-much-longer-value"));
+    }
 }

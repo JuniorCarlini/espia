@@ -27,7 +27,8 @@ docker run -p 8080:8080 -e ESPIA_TOKEN="$(openssl rand -hex 32)" espia-headless
 | --------------------- | -------------------- | --------------------------------------------------- |
 | `ESPIA_TOKEN`         | *(none)*             | Required to read `/metrics` and `/containers`. Unset means every request to them is rejected — see below. |
 | `ESPIA_BIND`          | `0.0.0.0:8080`       | Address and port to listen on.                     |
-| `ESPIA_DOCKER_SOCKET` | `/var/run/docker.sock` | Docker socket path, for `/containers`.           |
+| `ESPIA_DOCKER_SOCKET` | `/var/run/docker.sock` | Docker socket path, for `/containers`. Ignored if `ESPIA_DOCKER_HOST` is set. |
+| `ESPIA_DOCKER_HOST`   | *(none)*             | `host:port` of a `docker-socket-proxy` instead of a socket — see Security model. Takes priority over `ESPIA_DOCKER_SOCKET`. |
 
 ## Endpoints
 
@@ -81,10 +82,39 @@ being deliberate about:
   internet.
 
 **`/containers` is a bigger trust boundary than the rest of this binary.**
-Mounting `/var/run/docker.sock` in gives this container root-equivalent
-control of the entire Docker host, not just read access to stats — see
-[ADR 0014](../../docs/adr/0014-docker-container-stats.md). Only mount it
-on a VPS you already fully control, never on shared or multi-tenant Docker
-infrastructure. Leaving the socket unmounted keeps the agent at
-[ADR 0013](../../docs/adr/0013-headless-agent.md)'s original, much smaller
-blast radius — `/metrics` and `/health` don't need it.
+Mounting `/var/run/docker.sock` in directly gives this container
+root-equivalent control of the entire Docker host, not just read access to
+stats — see [ADR 0014](../../docs/adr/0014-docker-container-stats.md).
+Only mount it on a VPS you already fully control, never on shared or
+multi-tenant Docker infrastructure. Leaving the socket unmounted keeps the
+agent at [ADR 0013](../../docs/adr/0013-headless-agent.md)'s original,
+much smaller blast radius — `/metrics` and `/health` don't need it.
+
+**Recommended: put a read-only [`docker-socket-proxy`](https://github.com/Tecnativa/docker-socket-proxy)
+sidecar in front of the real socket**, instead of mounting it into this
+container directly. The proxy holds the real socket; `espia-headless`
+only ever reaches the proxy over plain HTTP, which refuses anything but
+the container list/stats calls `/containers` needs — even if this binary
+were compromised, an attacker reaches a proxy that returns `403` on
+`create`, `stop`, `exec`, and everything else, not the real Docker API:
+
+```sh
+docker run -d --name docker-socket-proxy \
+  -e CONTAINERS=1 -e POST=0 \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  tecnativa/docker-socket-proxy
+
+docker run -d --name espia-headless \
+  -p 8080:8080 \
+  -e ESPIA_TOKEN="$(openssl rand -hex 32)" \
+  -e ESPIA_DOCKER_HOST=docker-socket-proxy:2375 \
+  --link docker-socket-proxy \
+  espia-headless
+```
+
+(On Easypanel, or anything else where containers share a network by
+service name already, skip `--link` and just point `ESPIA_DOCKER_HOST` at
+the proxy service's name — e.g. `docker-socket-proxy:2375`.) Verified
+locally: `POST /containers/create` and `POST /containers/<id>/stop`
+against the proxy both return `403`, while `GET /containers/json` and
+`GET /containers/<id>/stats` — everything `/containers` needs — work.

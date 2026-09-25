@@ -86,7 +86,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The headless agent now has a `GET /containers` endpoint showing
   per-container CPU and memory usage (sorted highest first) for the
   Docker host it's running on, matching `docker stats`. Opt-in: it needs
-  `/var/run/docker.sock` mounted in, which grants root-equivalent control
-  of the whole host — see ADR 0014 before enabling it.
+  either the real `/var/run/docker.sock` mounted in (root-equivalent
+  control of the whole host) or, recommended, a read-only
+  `docker-socket-proxy` sidecar in front of it — see ADR 0014.
+
+- Hardened the headless agent's token check to a constant-time
+  comparison, closing a theoretical timing side channel.
 
 - Renamed the project from ESPHub to **espia**.

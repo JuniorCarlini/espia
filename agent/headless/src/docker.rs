@@ -1,21 +1,49 @@
 //! Per-container CPU/memory usage, read straight from the Docker Engine API
-//! over its Unix socket — no client library, matching this binary's "no
-//! async runtime, nothing fancy" philosophy (see `docs/adr/0014-docker-container-stats.md`).
+//! — no client library, matching this binary's "no async runtime, nothing
+//! fancy" philosophy (see `docs/adr/0014-docker-container-stats.md`).
 //!
-//! Requires `/var/run/docker.sock` mounted into this container. Anyone who
-//! can reach that socket has root-equivalent control over the whole Docker
-//! host, not just read access to stats — see the ADR before enabling this.
+//! Talks to either the real Docker socket directly (`ESPIA_DOCKER_SOCKET`,
+//! the default) or, preferably, a read-only `docker-socket-proxy` sidecar
+//! over TCP (`ESPIA_DOCKER_HOST`, if set — takes priority). Either way,
+//! whatever this reaches decides how much control it's handing out: the
+//! real socket is root-equivalent over the whole Docker host, a properly
+//! locked-down proxy is read-only to `/containers*`. See the ADR.
 
 use std::env;
 use std::io::{Read, Write};
+use std::net::TcpStream;
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
 const SOCKET_ENV_VAR: &str = "ESPIA_DOCKER_SOCKET";
+const HOST_ENV_VAR: &str = "ESPIA_DOCKER_HOST";
 const DEFAULT_SOCKET: &str = "/var/run/docker.sock";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Where to reach the Docker API — resolved once per call, not cached, so
+/// changing the env var (rare, but true in tests) takes effect immediately.
+enum Target {
+    /// A direct connection to the real Docker socket.
+    Socket(String),
+    /// A `docker-socket-proxy` (or anything else speaking the Docker API
+    /// over plain HTTP) reachable at `host:port`.
+    Tcp(String),
+}
+
+fn resolve_target() -> Target {
+    match env::var(HOST_ENV_VAR) {
+        Ok(host) if !host.trim().is_empty() => Target::Tcp(host),
+        _ => Target::Socket(env::var(SOCKET_ENV_VAR).unwrap_or_else(|_| DEFAULT_SOCKET.to_string())),
+    }
+}
+
+/// Blanket-implemented for anything that's both `Read` and `Write`, so
+/// `docker_get` can hold either a `UnixStream` or a `TcpStream` behind one
+/// trait object instead of duplicating its request/response handling.
+trait ReadWrite: Read + Write {}
+impl<T: Read + Write> ReadWrite for T {}
 
 #[derive(Serialize)]
 pub struct ContainerStat {
@@ -88,14 +116,14 @@ struct MemoryDetail {
 /// request failing (no socket, permission denied, daemon unreachable); one
 /// bad container's stats call is skipped rather than failing the batch.
 pub fn container_stats() -> Result<Vec<ContainerStat>, String> {
-    let socket = env::var(SOCKET_ENV_VAR).unwrap_or_else(|_| DEFAULT_SOCKET.to_string());
-    let containers: Vec<ContainerSummary> = serde_json::from_str(&docker_get(&socket, "/containers/json")?)
+    let target = resolve_target();
+    let containers: Vec<ContainerSummary> = serde_json::from_str(&docker_get(&target, "/containers/json")?)
         .map_err(|e| format!("could not parse container list: {e}"))?;
 
     let mut stats: Vec<ContainerStat> = containers
         .into_iter()
         .filter_map(|container| {
-            let body = docker_get(&socket, &format!("/containers/{}/stats?stream=false", container.id)).ok()?;
+            let body = docker_get(&target, &format!("/containers/{}/stats?stream=false", container.id)).ok()?;
             let response: StatsResponse = serde_json::from_str(&body).ok()?;
             Some(ContainerStat {
                 id: container.id.chars().take(12).collect(),
@@ -132,10 +160,21 @@ fn cpu_percent(current: &CpuStats, previous: &CpuStats) -> f64 {
     (cpu_delta / system_delta) * cores * 100.0
 }
 
-fn docker_get(socket_path: &str, path: &str) -> Result<String, String> {
-    let mut stream = UnixStream::connect(socket_path).map_err(|e| format!("connecting to {socket_path}: {e}"))?;
-    stream.set_read_timeout(Some(REQUEST_TIMEOUT)).ok();
-    stream.set_write_timeout(Some(REQUEST_TIMEOUT)).ok();
+fn docker_get(target: &Target, path: &str) -> Result<String, String> {
+    let mut stream: Box<dyn ReadWrite> = match target {
+        Target::Socket(socket_path) => {
+            let stream = UnixStream::connect(socket_path).map_err(|e| format!("connecting to {socket_path}: {e}"))?;
+            stream.set_read_timeout(Some(REQUEST_TIMEOUT)).ok();
+            stream.set_write_timeout(Some(REQUEST_TIMEOUT)).ok();
+            Box::new(stream)
+        }
+        Target::Tcp(host) => {
+            let stream = TcpStream::connect(host).map_err(|e| format!("connecting to {host}: {e}"))?;
+            stream.set_read_timeout(Some(REQUEST_TIMEOUT)).ok();
+            stream.set_write_timeout(Some(REQUEST_TIMEOUT)).ok();
+            Box::new(stream)
+        }
+    };
 
     let request = format!("GET {path} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
     stream.write_all(request.as_bytes()).map_err(|e| format!("writing request: {e}"))?;

@@ -41,6 +41,13 @@ through anything under `/proc`.
   filesystem. A non-root `USER` in this image would not have changed
   that; it would only have hidden how much access `/containers` actually
   implies.
+- **The client supports an alternative, safer target**: `ESPIA_DOCKER_HOST`
+  points it at a `docker-socket-proxy` sidecar over plain HTTP instead of
+  the real socket (`ESPIA_DOCKER_SOCKET`, still the default). The proxy
+  holds the real socket and only forwards the specific calls `/containers`
+  needs, refusing everything else — `create`, `stop`, `exec`, and the rest
+  come back `403` even if this binary is compromised. This is the
+  recommended way to run it; see the headless README.
 
 ## Consequences
 
@@ -60,7 +67,9 @@ through anything under `/proc`.
   controls every other container."
 - Verified against a real Docker daemon: container list, computed CPU %,
   and memory usage were cross-checked against `docker stats` itself on
-  the same host and matched within normal sampling variance.
+  the same host and matched within normal sampling variance. Separately
+  verified the `docker-socket-proxy` path end to end, including that its
+  `403` on write calls actually holds.
 
 ## Alternatives considered
 
