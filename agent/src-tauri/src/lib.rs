@@ -16,6 +16,8 @@ use espia_core::settings;
 use espia_core::settings::{LocationOverride, Settings};
 use tauri::State;
 
+mod server;
+
 struct AppState {
     system: Mutex<SystemCollector>,
     weather: Mutex<WeatherCollector>,
@@ -88,6 +90,13 @@ fn set_language(language: String) -> Result<Settings, String> {
     settings::set_language(&language)
 }
 
+/// Sets (or, with `null`, clears back to the OS hostname) the friendly name
+/// this agent advertises to devices (protocol `hello`/`welcome`, mDNS).
+#[tauri::command]
+fn set_agent_name(name: Option<String>) -> Result<Settings, String> {
+    settings::set_agent_name(name)
+}
+
 /// Clears a manual weather location override, reverting to automatic
 /// IP-based geolocation. Setting one instead is [`select_weather_location`]
 /// — there's no "set by raw string" command because it isn't reliable; see
@@ -154,10 +163,18 @@ pub fn run() {
             get_ambient_weather,
             get_settings,
             set_language,
+            set_agent_name,
             clear_location_override,
             search_weather_locations,
             select_weather_location
         ])
+        .setup(|_app| {
+            // The device-facing server (WebSocket now, mDNS/UDP discovery
+            // and pairing in later build steps) — Tauri 2 already runs a
+            // tokio runtime, so this doesn't spin up a second one.
+            tauri::async_runtime::spawn(server::run());
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

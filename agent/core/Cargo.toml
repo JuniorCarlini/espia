@@ -14,6 +14,8 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 sysinfo = "0.33"
 dirs = "5"
+# The agent's own stable id (mDNS/`welcome`) and per-device pairing tokens.
+uuid = { version = "1", features = ["v4"] }
 # Ambient weather provider: the one thing in this crate that makes an
 # outbound internet request (everything else is local or LAN-only). `ureq`
 # is blocking/synchronous, matching how collectors are called, and small.

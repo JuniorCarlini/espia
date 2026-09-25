@@ -31,6 +31,13 @@ pub struct Settings {
     pub language: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location_override: Option<LocationOverride>,
+    /// The friendly name devices show for this agent (protocol `hello`'s
+    /// `name`, and mDNS's TXT `name`). `None` means "use the OS hostname",
+    /// computed live by [`agent_name`] rather than stored — only an
+    /// explicit [`set_agent_name`] call persists an override, same as every
+    /// other field here.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
 }
 
 impl Default for Settings {
@@ -38,11 +45,29 @@ impl Default for Settings {
         Self {
             language: DEFAULT_LANGUAGE.to_string(),
             location_override: None,
+            name: None,
         }
     }
 }
 
-fn app_data_dir() -> Result<PathBuf, String> {
+/// The name to advertise for this agent: the user's override if they set
+/// one, otherwise the OS hostname, otherwise a fixed fallback (a machine
+/// with neither is rare, but a device still needs something to show).
+pub fn agent_name() -> String {
+    load().name.unwrap_or_else(|| {
+        sysinfo::System::host_name().unwrap_or_else(|| "espia agent".to_string())
+    })
+}
+
+/// Sets (or, with `None`, clears) the agent's friendly name override.
+pub fn set_agent_name(name: Option<String>) -> Result<Settings, String> {
+    let mut settings = load();
+    settings.name = name.filter(|n| !n.trim().is_empty());
+    save(&settings)?;
+    Ok(settings)
+}
+
+pub(crate) fn app_data_dir() -> Result<PathBuf, String> {
     let dir = dirs::data_dir()
         .ok_or("Could not determine this OS's application data directory")?
         .join(APP_DATA_DIR_NAME);

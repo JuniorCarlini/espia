@@ -7,6 +7,7 @@
 //! of its existing separately from `src-tauri`.
 
 pub mod collectors;
+pub mod identity;
 pub mod providers;
 pub mod settings;
 
