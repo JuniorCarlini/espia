@@ -1,0 +1,46 @@
+name: Bug report
+description: Report something that is not working as expected.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Agent
+        - Firmware
+        - Protocol
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "e.g. agent 0.1.0, firmware 0.1.0"
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "e.g. Windows 11, ESP32-S3 board model"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      render: text

@@ -1,0 +1,20 @@
+{
+  "v": 1,
+  "type": "provider",
+  "ts": 1790000030000,
+  "provider": "claude",
+  "data": {
+    "source": "claude_code_statusline",
+    "plan_limits": {
+      "five_hour": {
+        "used_pct": 23.5,
+        "resets_at": 1790010000000
+      },
+      "seven_day": {
+        "used_pct": 41.2,
+        "resets_at": 1790400000000
+      },
+      "updated_at": 1790000025000
+    }
+  }
+}

@@ -1,0 +1,20 @@
+[package]
+name = "espia-headless"
+version = "0.1.0"
+description = "Headless HTTP server exposing espia agent metrics, for a VPS or Docker host without a display"
+authors = ["espia contributors"]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/JuniorCarlini/espia"
+
+[[bin]]
+name = "espia-headless"
+path = "src/main.rs"
+
+[dependencies]
+espia-core = { path = "../core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+# Synchronous, no async runtime, no TLS: matches this crate's one job (serve
+# a local metrics endpoint behind a token) — see docs/adr/0013-headless-agent.md.
+tiny_http = "0.12"

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Points at the "ESPHub" icon name compiled into Resources/Assets.car
+       (see docs/assets/build-icon.sh), so macOS 26+ renders the Liquid
+       Glass version instead of falling back to icon.icns. Merged into
+       Tauri's generated Info.plist — see docs/adr/0008. -->
+  <key>CFBundleIconName</key>
+  <string>ESPHub</string>
+</dict>
+</plist>

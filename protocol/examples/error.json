@@ -1,0 +1,6 @@
+{
+  "v": 1,
+  "type": "error",
+  "code": "pairing_rejected",
+  "message": "The pairing code did not match."
+}

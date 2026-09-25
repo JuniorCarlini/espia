@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "type": "hello",
+  "ts": 1790000000000,
+  "device_id": "espia-a1b2c3",
+  "firmware": "0.1.0",
+  "token": null,
+  "board": "Heltec WiFi Kit 32 V3",
+  "display": {
+    "width": 128,
+    "height": 64,
+    "mono": true,
+    "touch": false
+  }
+}

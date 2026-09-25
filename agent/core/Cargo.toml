@@ -1,0 +1,20 @@
+[package]
+name = "espia-core"
+version = "0.1.0"
+description = "Collectors, providers, and settings shared by the espia agent's GUI and headless binaries"
+authors = ["espia contributors"]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/JuniorCarlini/espia"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+# preserve_order: settings.json is a file the user (or another tool) hand-edits;
+# rewriting it must not reshuffle unrelated keys into alphabetical order.
+serde_json = { version = "1", features = ["preserve_order"] }
+sysinfo = "0.33"
+dirs = "5"
+# Ambient weather provider: the one thing in this crate that makes an
+# outbound internet request (everything else is local or LAN-only). `ureq`
+# is blocking/synchronous, matching how collectors are called, and small.
+ureq = { version = "2", default-features = false, features = ["tls", "json"] }

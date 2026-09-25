@@ -1,0 +1,22 @@
+{
+  "name": "espia-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "tauri": "tauri",
+    "dev:css": "tailwindcss -i ./src/input.css -o ./src/styles.css --watch",
+    "build:css": "tailwindcss -i ./src/input.css -o ./src/styles.css --minify",
+    "vendor": "mkdir -p src/vendor/tucano && cp node_modules/tucano/dist/tucano.min.css node_modules/tucano/dist/tucano.esm.js src/vendor/tucano/",
+    "prep": "npm run vendor && npm run build:css"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@tauri-apps/cli": "^2",
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "tucano": "^0.36.0"
+  }
+}

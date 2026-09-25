@@ -1,0 +1,140 @@
+/* Tailwind entry point. Compiled to styles.css — see package.json's
+   `build:css` / `dev:css` scripts. Do not edit styles.css by hand. */
+@import "tailwindcss";
+
+/* Brand tokens, sampled from the espia wordmark (agent/src/assets/wordmark.png). */
+@theme {
+  --color-brand: #5cec01;
+  --color-brand-dim: #5cec0126;
+  --color-warning: #ff8a00;
+  --color-critical: #ef4444;
+
+  --color-canvas: #0a0a0c;
+  --color-surface: #17181b;
+  --color-surface-raised: #1e1f23;
+  --color-border: #ffffff14;
+
+  --color-ink: #f5f6f2;
+  --color-ink-muted: #9a9ca3;
+  --color-ink-faint: #6b6d74;
+}
+
+@layer components {
+  /* The card grid uses a fixed dark theme, matching the brand mark, rather
+     than following the OS light/dark setting — this is a glanceable
+     monitoring surface, closer to a device display than a document. */
+  body {
+    @apply bg-canvas text-ink antialiased;
+  }
+
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-5;
+  }
+
+  .card-planned {
+    @apply border-dashed border-white/10 bg-surface/40;
+  }
+
+  .tag {
+    @apply rounded-full bg-surface-raised px-2 py-0.5 text-[11px] font-medium
+      uppercase tracking-wide text-ink-muted;
+  }
+
+  .tag-planned {
+    @apply bg-white/5 text-ink-faint;
+  }
+
+  .tag-connected {
+    @apply bg-brand-dim text-brand;
+  }
+
+  .tag-disconnected {
+    @apply bg-critical/10 text-critical;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full border border-border
+      bg-surface px-3 py-1.5 text-xs font-medium text-ink-muted;
+  }
+
+  .pill-dot {
+    @apply h-1.5 w-1.5 rounded-full bg-ink-faint;
+  }
+}
+
+/* Radial usage ring: a plain SVG circle whose stroke-dasharray is driven by
+   `pathLength="100"`, so JS only ever sets a 0–100 offset.
+   Named `.usage-ring`, not `.ring` — that name collides with Tailwind's own
+   `ring` (box-shadow) utility and would pick up its default border. */
+.usage-ring {
+  @apply -rotate-90;
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--color-surface-raised);
+  stroke-width: 10;
+}
+
+.ring-arc {
+  fill: none;
+  stroke: var(--color-brand);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition:
+    stroke-dashoffset 0.4s ease,
+    stroke 0.3s ease;
+}
+
+.sparkline-line {
+  fill: none;
+  stroke: var(--color-brand);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 0.3s ease;
+}
+
+.sparkline-area {
+  fill: var(--color-brand-dim);
+  stroke: none;
+  transition: fill 0.3s ease;
+}
+
+.temp-bar-fill {
+  @apply h-full rounded-full bg-brand;
+  width: 0%;
+  transition:
+    width 0.4s ease,
+    background-color 0.3s ease;
+}
+
+/* Tucano (vendor/tucano/, linked in index.html before this file so these
+   rules win by source order) theming: its components read their colors from
+   these custom properties, so retheming is just remapping them onto our own
+   tokens above — no need to fight its default (light) palette with
+   overrides of its own classes. See docs/adr/0012-tucano.md. */
+:root {
+  --tuc-accent: var(--color-brand);
+  --tuc-accent-hover: color-mix(in oklab, var(--color-brand) 85%, black);
+  --tuc-accent-fg: var(--color-canvas);
+  --tuc-accent-text: var(--color-brand);
+  --tuc-bg: var(--color-surface);
+  --tuc-fg: var(--color-ink);
+  --tuc-muted: var(--color-ink-muted);
+  --tuc-subtle: var(--color-ink-faint);
+  --tuc-border: var(--color-border);
+  --tuc-hover: var(--color-surface-raised);
+  --tuc-elevated: var(--color-surface-raised);
+  --tuc-success: var(--color-brand);
+  --tuc-warning: var(--color-warning);
+  --tuc-danger: var(--color-critical);
+  --tuc-danger-fill: var(--color-critical);
+  --tuc-font: inherit;
+  --tuc-radius: 1rem;
+  --tuc-radius-md: 0.75rem;
+  --tuc-radius-sm: 0.5rem;
+}

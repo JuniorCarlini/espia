@@ -1,0 +1,35 @@
+{
+  "fill-specializations" : [
+    {
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.00784,0.00784,0.00784,1.00000",
+          "display-p3:0.11765,0.11765,0.11765,1.00000"
+        ]
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "wordmark.png",
+          "name" : "wordmark",
+          "opacity" : 1,
+          "position" : {
+            "scale" : 0.92,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : "shared"
+  }
+}
