@@ -118,7 +118,14 @@
         letter-spacing: 0.02em;
       }
 
+      /* Tucano only collapses the (unused — 3 options, no search) search
+         input's 4rem min-width while closed (`.has-value:not(.is-open)`);
+         opening the panel let it claim that width again and grew the whole
+         pill. Force it collapsed in every state instead. */
       #language-select + .tuc-select input.tuc-select__search {
+        flex: none;
+        width: 0;
+        min-width: 0;
         font-size: 0.72rem;
       }
 
