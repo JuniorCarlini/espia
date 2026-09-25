@@ -7,6 +7,12 @@
          silently renders a blank window, even though the identical
          absolute path works fine under `tauri dev`. See ADR 0009. -->
     <meta charset="UTF-8" />
+    <!-- Inline, before any linked stylesheet has to fetch+parse: paints the
+         window dark on the very first frame instead of a white flash while
+         styles.css loads. Matches --color-canvas in input.css. -->
+    <style>
+      html, body { background: #0a0a0c; }
+    </style>
     <!-- Tucano before styles.css: our theme block in input.css overrides its
          --tuc-* custom properties, and relies on source order to win. See
          docs/adr/0012-tucano.md. -->
@@ -18,6 +24,82 @@
   </head>
 
   <body>
+    <!-- Boot splash: covers the dashboard while the first real metrics load
+         (see boot.js). Sits on top via fixed + z-50, same bg as <body> so
+         there's no color seam, and fades out once playBootAnimation() and
+         the first refreshMetrics() have both settled. -->
+    <div id="boot-splash" class="boot-splash" aria-hidden="true">
+      <svg class="boot-logo" viewBox="0 0 528.20 132.20" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12.6" cy="48.6" r="8.60"/>
+        <circle cx="12.6" cy="66.6" r="8.60"/>
+        <circle cx="12.6" cy="84.6" r="8.60"/>
+        <circle cx="30.6" cy="29.6" r="8.60"/>
+        <circle cx="30.6" cy="66.6" r="8.60"/>
+        <circle cx="30.6" cy="102.6" r="8.60"/>
+        <circle cx="48.6" cy="29.6" r="8.60"/>
+        <circle cx="48.6" cy="65.6" r="8.60"/>
+        <circle cx="48.6" cy="102.6" r="8.60"/>
+        <circle cx="66.6" cy="30.6" r="8.60"/>
+        <circle cx="66.6" cy="66.6" r="8.60"/>
+        <circle cx="66.6" cy="102.6" r="8.60"/>
+        <circle cx="84.6" cy="48.6" r="8.60"/>
+        <circle cx="84.6" cy="66.6" r="8.60"/>
+        <circle cx="84.6" cy="102.6" r="8.60"/>
+        <circle cx="120.6" cy="47.6" r="8.60"/>
+        <circle cx="120.6" cy="102.6" r="8.60"/>
+        <circle cx="138.6" cy="30.6" r="8.60"/>
+        <circle cx="138.6" cy="66.6" r="8.60"/>
+        <circle cx="138.6" cy="102.6" r="8.60"/>
+        <circle cx="156.6" cy="29.6" r="8.60"/>
+        <circle cx="156.6" cy="65.6" r="8.60"/>
+        <circle cx="156.6" cy="101.6" r="8.60"/>
+        <circle cx="174.6" cy="30.6" r="8.60"/>
+        <circle cx="174.6" cy="66.6" r="8.60"/>
+        <circle cx="174.6" cy="101.6" r="8.60"/>
+        <circle cx="192.6" cy="30.6" r="8.60"/>
+        <circle cx="192.6" cy="83.6" r="8.60"/>
+        <circle cx="227.6" cy="30.6" r="8.60"/>
+        <circle cx="227.6" cy="48.6" r="8.60"/>
+        <circle cx="227.6" cy="84.6" r="8.60"/>
+        <circle cx="227.6" cy="102.6" r="8.60"/>
+        <circle cx="227.6" cy="119.6" r="8.60"/>
+        <circle cx="228.6" cy="66.6" r="8.60"/>
+        <circle cx="245.6" cy="102.6" r="8.60"/>
+        <circle cx="246.6" cy="48.6" r="8.60"/>
+        <circle cx="263.6" cy="102.6" r="8.60"/>
+        <circle cx="264.6" cy="30.6" r="8.60"/>
+        <circle cx="282.6" cy="30.6" r="8.60"/>
+        <circle cx="282.6" cy="102.6" r="8.60"/>
+        <circle cx="300.6" cy="48.6" r="8.60"/>
+        <circle cx="300.6" cy="66.6" r="8.60"/>
+        <circle cx="300.6" cy="84.6" r="8.60"/>
+        <circle cx="335.6" cy="48.6" r="8.60"/>
+        <circle cx="335.6" cy="102.6" r="8.60"/>
+        <circle cx="353.6" cy="48.6" r="8.60"/>
+        <circle cx="353.6" cy="102.6" r="8.60"/>
+        <circle cx="371.6" cy="12.6" r="8.60"/>
+        <circle cx="371.6" cy="48.6" r="8.60"/>
+        <circle cx="371.6" cy="66.6" r="8.60"/>
+        <circle cx="371.6" cy="84.6" r="8.60"/>
+        <circle cx="371.6" cy="102.6" r="8.60"/>
+        <circle cx="389.6" cy="102.6" r="8.60"/>
+        <circle cx="407.6" cy="102.6" r="8.60"/>
+        <circle cx="443.6" cy="84.6" r="8.60"/>
+        <circle cx="461.6" cy="30.6" r="8.60"/>
+        <circle cx="461.6" cy="66.6" r="8.60"/>
+        <circle cx="461.6" cy="102.6" r="8.60"/>
+        <circle cx="479.6" cy="30.6" r="8.60"/>
+        <circle cx="479.6" cy="66.6" r="8.60"/>
+        <circle cx="479.6" cy="102.6" r="8.60"/>
+        <circle cx="497.6" cy="30.6" r="8.60"/>
+        <circle cx="497.6" cy="66.6" r="8.60"/>
+        <circle cx="515.6" cy="48.6" r="8.60"/>
+        <circle cx="515.6" cy="66.6" r="8.60"/>
+        <circle cx="515.6" cy="84.6" r="8.60"/>
+        <circle cx="515.6" cy="102.6" r="8.60"/>
+      </svg>
+    </div>
+
     <div class="mx-auto max-w-5xl px-6 py-8">
       <header class="mb-8 flex items-center justify-between">
         <div class="flex items-center gap-4">

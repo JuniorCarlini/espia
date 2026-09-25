@@ -62,6 +62,54 @@
   }
 }
 
+/* Boot splash — see boot.js. Random per-dot delay comes from --rd/--rblink,
+   set on each <circle> at runtime (never the same twice), not from CSS. */
+.boot-splash {
+  @apply fixed inset-0 z-50 flex items-center justify-center bg-canvas;
+  transition: opacity 0.5s ease;
+}
+
+.boot-splash.is-hidden {
+  @apply pointer-events-none opacity-0;
+}
+
+.boot-logo {
+  width: min(320px, 70vw);
+  height: auto;
+}
+
+.boot-logo circle {
+  fill: var(--color-brand);
+}
+
+@keyframes boot-dot-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes boot-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.boot-logo.is-playing circle {
+  animation-name: boot-dot-in, boot-blink;
+  animation-duration: 0.5s, 0.45s;
+  animation-timing-function: ease-out, ease-in-out;
+  animation-delay: var(--rd), var(--rblink);
+  animation-iteration-count: 1, 3;
+  animation-fill-mode: both, forwards;
+}
+
 /* Radial usage ring: a plain SVG circle whose stroke-dasharray is driven by
    `pathLength="100"`, so JS only ever sets a 0–100 offset.
    Named `.usage-ring`, not `.ring` — that name collides with Tailwind's own

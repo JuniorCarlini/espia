@@ -6,6 +6,7 @@
 // UI polling it — see docs/architecture.md.
 
 import { t, applyTranslations, setCurrentLanguage } from "./i18n.js";
+import { playBootAnimation, hideBootSplash } from "./boot.js";
 // Vendored from the `tucano` npm package by `npm run vendor` — never edit
 // these files directly. See docs/adr/0012-tucano.md.
 import { init as initTucano, Select as TucanoSelect, confirm as tucanoConfirm } from "./vendor/tucano/tucano.esm.js";
@@ -713,6 +714,8 @@ const locationSelect = new TucanoSelect("#settings-location-select", {
 settingsLocationClearButtonEl.addEventListener("click", clearLocationOverride);
 
 window.addEventListener("DOMContentLoaded", async () => {
+  const bootAnimation = playBootAnimation();
+
   // Wires every `data-tuc-*` element already in the page — the settings
   // dialog's open/close triggers, chiefly. Elements we construct a class
   // instance for ourselves (the language `Select`, above) are already live
@@ -729,7 +732,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     applyTranslations(); // still apply the default-language strings
   }
 
-  refreshMetrics();
+  const firstMetricsLoad = refreshMetrics();
   setInterval(refreshMetrics, POLL_INTERVAL_MS);
 
   refreshClaudeStatus();
@@ -737,4 +740,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   refreshWeather();
   setInterval(refreshWeather, WEATHER_POLL_INTERVAL_MS);
+
+  // Whichever takes longer: the boot animation always plays out in full, and
+  // the splash never lifts before the dashboard behind it has real data.
+  await Promise.all([bootAnimation, firstMetricsLoad]);
+  hideBootSplash();
 });
