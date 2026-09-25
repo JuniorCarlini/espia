@@ -10,7 +10,6 @@ export const SUPPORTED_LANGUAGES = ["en", "pt", "es"];
 export const DEFAULT_LANGUAGE = "en";
 
 const en = {
-  "header.subtitle": "Agent",
   "header.noDevicePaired": "No device paired",
   "header.noDevicePairedTooltip": "Pairing with an ESP32 device isn't implemented yet — see the protocol spec",
   "header.settings": "Settings",
@@ -102,7 +101,6 @@ const en = {
 };
 
 const pt = {
-  "header.subtitle": "Agente",
   "header.noDevicePaired": "Nenhum dispositivo pareado",
   "header.noDevicePairedTooltip": "O pareamento com um dispositivo ESP32 ainda não foi implementado — veja a especificação do protocolo",
   "header.settings": "Configurações",
@@ -194,7 +192,6 @@ const pt = {
 };
 
 const es = {
-  "header.subtitle": "Agente",
   "header.noDevicePaired": "Ningún dispositivo emparejado",
   "header.noDevicePairedTooltip": "El emparejamiento con un dispositivo ESP32 aún no está implementado — vea la especificación del protocolo",
   "header.settings": "Configuración",
