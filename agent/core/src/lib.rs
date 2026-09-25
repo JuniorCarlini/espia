@@ -8,7 +8,9 @@
 
 pub mod collectors;
 pub mod identity;
+pub mod pairing;
 pub mod providers;
+pub mod security;
 pub mod settings;
 
 /// Test-only support shared across modules. `providers::claude` and

@@ -11,11 +11,11 @@ pub const PROTOCOL_VERSION: u8 = 1;
 #[derive(Deserialize)]
 pub struct Hello {
     pub device_id: String,
-    #[allow(dead_code)] // read for future pairing/logging steps
     pub firmware: String,
     pub board: String,
-    #[allow(dead_code)] // wired up once pairing lands (a later build step)
     pub token: Option<String>,
+    // Not read yet — reserved for adapting what's sent by display class
+    // (ADR 0006), once more than one class of device exists.
     #[allow(dead_code)]
     pub display: Display,
 }
@@ -102,4 +102,75 @@ pub struct Announce {
     pub name: String,
     pub port: u16,
     pub path: &'static str,
+}
+
+/// Sent instead of `welcome` when `hello`'s token is missing or not
+/// recognized (protocol §4.2).
+#[derive(Serialize)]
+pub struct PairRequired {
+    pub v: u8,
+    #[serde(rename = "type")]
+    pub kind: &'static str,
+}
+
+impl PairRequired {
+    pub fn new() -> Self {
+        Self {
+            v: PROTOCOL_VERSION,
+            kind: "pair_required",
+        }
+    }
+}
+
+/// The device's reply to `pair_required`, carrying the code it generated
+/// and is showing on its own screen.
+#[derive(Deserialize)]
+pub struct PairRequest {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub code: String,
+}
+
+/// Sent once a human confirms the code a device showed (protocol §4.2),
+/// immediately followed by `welcome`.
+#[derive(Serialize)]
+pub struct Paired {
+    pub v: u8,
+    #[serde(rename = "type")]
+    pub kind: &'static str,
+    pub agent_id: String,
+    pub token: String,
+}
+
+impl Paired {
+    pub fn new(agent_id: String, token: String) -> Self {
+        Self {
+            v: PROTOCOL_VERSION,
+            kind: "paired",
+            agent_id,
+            token,
+        }
+    }
+}
+
+/// A protocol-level error (§4.3), sent right before closing the
+/// connection.
+#[derive(Serialize)]
+pub struct ErrorMessage {
+    pub v: u8,
+    #[serde(rename = "type")]
+    pub kind: &'static str,
+    pub code: &'static str,
+    pub message: String,
+}
+
+impl ErrorMessage {
+    pub fn new(code: &'static str, message: impl Into<String>) -> Self {
+        Self {
+            v: PROTOCOL_VERSION,
+            kind: "error",
+            code,
+            message: message.into(),
+        }
+    }
 }

@@ -14,7 +14,7 @@ use espia_core::providers::claude::ClaudeStatusLineStatus;
 use espia_core::providers::weather::{AmbientWeather, WeatherCollector};
 use espia_core::settings;
 use espia_core::settings::{LocationOverride, Settings};
-use tauri::State;
+use tauri::{Manager, State};
 
 mod server;
 
@@ -166,13 +166,19 @@ pub fn run() {
             set_agent_name,
             clear_location_override,
             search_weather_locations,
-            select_weather_location
+            select_weather_location,
+            server::pairing::respond_to_pairing,
+            server::pairing::list_paired_devices,
+            server::pairing::unpair_device
         ])
-        .setup(|_app| {
-            // The device-facing server (WebSocket now, mDNS/UDP discovery
-            // and pairing in later build steps) — Tauri 2 already runs a
-            // tokio runtime, so this doesn't spin up a second one.
-            tauri::async_runtime::spawn(server::run());
+        .setup(|app| {
+            // Built here (not inside server::run) so the same Arc can go to
+            // both `.manage()` — for the pairing commands above — and the
+            // background task. Tauri 2 already runs a tokio runtime, so
+            // spawning that task doesn't start a second one.
+            let state = server::build_state(app.handle().clone());
+            app.manage(state.clone());
+            tauri::async_runtime::spawn(server::run(state));
             Ok(())
         })
         .run(tauri::generate_context!())

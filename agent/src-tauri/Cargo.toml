@@ -35,3 +35,6 @@ futures-util = "0.3"
 mdns-sd = "0.21"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Pairing confirmation request ids (server/pairing.rs) — espia-core already
+# depends on this for agent/device identity and pairing tokens.
+uuid = { version = "1", features = ["v4"] }
