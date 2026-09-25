@@ -1,0 +1,35 @@
+# Runs the headless agent and its Docker-socket proxy together, as one
+# stack. They're still two separate containers underneath — see
+# docs/adr/0014-docker-container-stats.md for why merging them into one
+# would defeat the point (a Docker volume mount is scoped to the whole
+# container, not to one process inside it) — this file just makes
+# deploying both of them a single step instead of two.
+#
+#   ESPIA_TOKEN=$(openssl rand -hex 32) docker compose up -d --build
+#
+# or put ESPIA_TOKEN=... in a .env file next to this one.
+
+services:
+  espia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ESPIA_TOKEN: ${ESPIA_TOKEN:?set ESPIA_TOKEN before running — see this file's header}
+      ESPIA_DOCKER_HOST: espia-socket-guard:2375
+    depends_on:
+      - espia-socket-guard
+    restart: unless-stopped
+
+  espia-socket-guard:
+    build:
+      context: ./socket-guard
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # No `ports:` here, on purpose: only `espia`, over the private network
+    # Compose creates for this stack, ever needs to reach this — never the
+    # outside world.
+    restart: unless-stopped

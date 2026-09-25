@@ -99,6 +99,12 @@ and it forwards exactly two hardcoded paths (`GET /containers/json`,
 included, comes back `403` before it ever reaches the socket, even if
 `espia-headless` itself were compromised:
 
+Easiest: `docker compose up -d --build` from `agent/` (with `ESPIA_TOKEN`
+set) brings both up together as one stack — see
+[`../docker-compose.yml`](../docker-compose.yml). Deploying them as two
+separate services (Easypanel, or anywhere without Compose support) works
+the same way, just configured in two places instead of one:
+
 ```sh
 cd agent/socket-guard
 docker build -t espia-socket-guard .

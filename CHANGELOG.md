@@ -96,6 +96,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`create`, `stop`, `exec`, any other API path) with a `403` before it
   reaches the socket — an in-repo alternative to a third-party proxy
   image, for anyone who'd rather not trust one for this. See ADR 0014.
+  A `docker-compose.yml` deploys it together with the headless agent as
+  one stack, so using it is one step instead of two.
+
+- Fixed `GET /containers` scaling linearly with container count (~24s for
+  12 containers, one at a time) by fetching every container's stats in
+  parallel instead — ~2s for the same 12, on both the headless agent and
+  `espia-socket-guard`.
 
 - Hardened the headless agent's token check to a constant-time
   comparison, closing a theoretical timing side channel.

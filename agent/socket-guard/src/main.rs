@@ -18,6 +18,7 @@
 use std::env;
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
+use std::sync::Arc;
 use std::time::Duration;
 
 use tiny_http::{Header, Method, Response, Server, StatusCode};
@@ -30,7 +31,7 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 fn main() {
     let bind = env::var(BIND_ENV_VAR).unwrap_or_else(|_| DEFAULT_BIND.to_string());
-    let socket = env::var(SOCKET_ENV_VAR).unwrap_or_else(|_| DEFAULT_SOCKET.to_string());
+    let socket = Arc::new(env::var(SOCKET_ENV_VAR).unwrap_or_else(|_| DEFAULT_SOCKET.to_string()));
 
     let server = Server::http(&bind).unwrap_or_else(|err| {
         eprintln!("error: could not bind {bind}: {err}");
@@ -42,13 +43,21 @@ fn main() {
          refused before it reaches the socket."
     );
 
+    // A thread per request, not one request at a time: espia-headless
+    // fans its own per-container stats calls out in parallel (see
+    // headless/src/docker.rs), which only helps if this can actually
+    // serve them concurrently — Docker's own daemon handles many
+    // simultaneous API clients over the same socket fine.
     for request in server.incoming_requests() {
-        let (status, body) = handle(&socket, &request);
-        let mut response = Response::from_string(body).with_status_code(status);
-        if let Ok(header) = Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]) {
-            response = response.with_header(header);
-        }
-        let _ = request.respond(response);
+        let socket = Arc::clone(&socket);
+        std::thread::spawn(move || {
+            let (status, body) = handle(&socket, &request);
+            let mut response = Response::from_string(body).with_status_code(status);
+            if let Ok(header) = Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]) {
+                response = response.with_header(header);
+            }
+            let _ = request.respond(response);
+        });
     }
 }
 

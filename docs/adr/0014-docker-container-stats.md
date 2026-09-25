@@ -33,6 +33,16 @@ through anything under `/proc`.
   binary's whole point is staying free of both ([0013](0013-headless-agent.md)).
   CPU % is computed the same way `docker stats` computes it (CPU-time
   delta over system-CPU-time delta, scaled by core count).
+- **Both `espia-headless` and `espia-socket-guard` fetch/serve per-container
+  stats concurrently, one thread per container** — a real fix, not a
+  micro-optimization: `stats?stream=false` waits on Docker's own ~1s
+  sampling interval per call, so handling containers one at a time made
+  this scale as O(number of containers) — measured at ~24s for 12
+  containers locally. Doing every container in parallel (`std::thread`,
+  not async — same reasoning as the client itself, see above) brought
+  that down to ~2s, bounded by the slowest single call instead of their
+  sum. Both sides needed the fix: parallelizing only the caller just
+  moved the queueing into the proxy's own accept loop.
 - **This requires mounting `/var/run/docker.sock` into the container**,
   and the image now runs as root rather than a dedicated user. Neither is
   optional once this feature is on: **anyone who can reach that socket
@@ -58,6 +68,15 @@ through anything under `/proc`.
   hardcoded paths with no config surface at all: smaller, and fully
   auditable as part of this project rather than trusted from outside it.
   Both were verified end to end before making the call.
+- **A `docker-compose.yml` deploys both containers as one stack.** Running
+  `espia` and `espia-socket-guard` separately is two things to configure
+  on whatever's hosting them (two services, two builds, wiring one's env
+  var to the other's name) — real operational cost for the isolation
+  property above, which merging them into one container can't preserve
+  (a Docker volume mount is scoped to the whole container, not to a
+  process inside it, so both processes in one container would both reach
+  the real socket regardless of which one's code intended to). Compose
+  gets the cost back down to one step without touching that property.
 
 ## Consequences
 
@@ -84,7 +103,13 @@ through anything under `/proc`.
 - `espia-socket-guard` is one more thing to build, deploy, and keep in
   sync as its own container — a real cost against just mounting the
   socket directly, paid deliberately for not trusting a third party (or a
-  wide-open socket) with root on the host.
+  wide-open socket) with root on the host. `docker-compose.yml` keeps
+  that cost to a single deploy step.
+- Found and fixed a real perf issue while testing against a host with a
+  realistic number of containers (12), not just the couple used in early
+  testing: fetching stats one container at a time made `/containers`
+  scale linearly with container count (~24s for 12). Parallelized on both
+  sides — brought down to ~2s, bounded by the slowest single call.
 
 ## Alternatives considered
 

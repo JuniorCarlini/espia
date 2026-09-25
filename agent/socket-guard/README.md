@@ -61,6 +61,16 @@ to a Docker write call." Privilege dropping matters when code *might*
 misuse a broad capability it holds; a narrower capability that was never
 given at all doesn't need that second line of defense.
 
+## Concurrency
+
+Handles each incoming request on its own thread (not one at a time) — it
+needs to: `GET /containers` on `espia-headless` fans its per-container
+`/stats` calls out in parallel, and each one waits on Docker's own ~1s
+sampling interval, so a single-threaded proxy here would just move the
+serialization here instead of removing it. Measured against 12 real
+containers: one request at a time on both sides took ~24s; parallel on
+both sides, ~2s.
+
 ## Tested against
 
 - The exact two allowed calls, against a real Docker daemon: both work.
@@ -68,4 +78,6 @@ given at all doesn't need that second line of defense.
   `POST /containers/<id>/exec`, `GET /images/json`, and a `../` path
   traversal attempt through the container-id segment: all `403`, before
   reaching the socket.
-- End to end with `espia-headless` pointed at it via `ESPIA_DOCKER_HOST`.
+- End to end with `espia-headless` pointed at it via `ESPIA_DOCKER_HOST`,
+  including the concurrency fix above, against a host with 12 real
+  containers running.
