@@ -6,6 +6,10 @@ with no display. See [ADR 0013](../../docs/adr/0013-headless-agent.md) for
 why this is a separate binary, and why it's deliberately minimal: one
 thread, no async runtime, no TLS.
 
+Deploying to a managed host (Easypanel)? See
+[`docs/deploy-easypanel.md`](../../docs/deploy-easypanel.md) for the full
+walkthrough instead of piecing it together from this file.
+
 ## Running it
 
 ```sh
