@@ -1,5 +1,5 @@
 [package]
-name = "agent"
+name = "espia"
 version = "0.1.0"
 description = "espia desktop agent"
 authors = ["espia contributors"]
