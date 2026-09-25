@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>espia — setup page simulator</title>
+    <!-- Tucano from jsDelivr, pinned to the same version the desktop agent
+         vendors (agent/package.json) — see docs/adr/0012-tucano.md. CDN is
+         fine for this local preview; the real captive-portal page (once
+         firmware exists) runs on an isolated AP with no internet path to a
+         CDN at all, so it would need Tucano vendored in, same as the agent
+         does, not loaded like this. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tucano@0.36.0/dist/tucano.min.css" />
     <style>
       :root {
         --canvas: #0a0a0c;
@@ -16,6 +23,29 @@
         --brand: #5cec01;
         --brand-dim: #5cec0126;
         --critical: #ef4444;
+
+        /* Tucano theming — remaps its --tuc-* custom properties onto the
+           tokens above, same mapping as agent/src/input.css. Coming after
+           the CDN stylesheet in source order is what makes it win. */
+        --tuc-accent: var(--brand);
+        --tuc-accent-hover: color-mix(in oklab, var(--brand) 85%, black);
+        --tuc-accent-fg: var(--canvas);
+        --tuc-accent-text: var(--brand);
+        --tuc-bg: var(--surface);
+        --tuc-fg: var(--ink);
+        --tuc-muted: var(--ink-muted);
+        --tuc-subtle: var(--ink-faint);
+        --tuc-border: var(--border);
+        --tuc-hover: var(--surface-raised);
+        --tuc-elevated: var(--surface-raised);
+        --tuc-success: var(--brand);
+        --tuc-warning: #ff8a00;
+        --tuc-danger: var(--critical);
+        --tuc-danger-fill: var(--critical);
+        --tuc-font: inherit;
+        --tuc-radius: 1rem;
+        --tuc-radius-md: 0.75rem;
+        --tuc-radius-sm: 0.5rem;
       }
 
       * {
@@ -70,43 +100,27 @@
         margin: 4px 0 24px;
       }
 
-      .tabs {
-        display: flex;
-        gap: 4px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 4px;
+      /* Tabs, panels, buttons, and inputs all come from Tucano now
+         (.tuc-tabs, .tuc-btn, .tuc-input) — only what it doesn't provide
+         stays hand-rolled below: the network list, agent rows, and tags. */
+      .tuc-tabs {
         margin-bottom: 20px;
       }
 
-      .tab {
+      .tuc-tabs__list {
+        width: 100%;
+      }
+
+      .tuc-tabs__tab {
         flex: 1;
-        text-align: center;
-        padding: 8px 0;
-        border-radius: 9px;
-        font-size: 0.82rem;
-        font-weight: 500;
-        color: var(--ink-muted);
-        cursor: pointer;
-        border: none;
-        background: transparent;
-        font-family: inherit;
+        justify-content: center;
       }
 
-      .tab.is-active {
-        background: var(--surface-raised);
-        color: var(--ink);
-      }
-
-      .panel {
-        display: none;
+      .tuc-tabs__panel {
+        display: flex;
         flex-direction: column;
         gap: 14px;
-      }
-
-      .panel.is-active {
-        display: flex;
+        margin-top: 20px;
       }
 
       .card {
@@ -202,11 +216,6 @@
         background: var(--ink-muted);
       }
 
-      .lock {
-        color: var(--ink-faint);
-        font-size: 0.7rem;
-      }
-
       label {
         display: block;
         font-size: 0.75rem;
@@ -214,52 +223,8 @@
         margin: 14px 0 6px;
       }
 
-      input[type="password"],
-      input[type="text"] {
-        width: 100%;
-        background: var(--canvas);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 10px 12px;
-        color: var(--ink);
-        font-size: 0.9rem;
-        font-family: inherit;
-      }
-
-      input:focus {
-        outline: none;
-        border-color: var(--brand);
-      }
-
-      button.primary {
-        width: 100%;
+      .tuc-btn.is-block {
         margin-top: 16px;
-        background: var(--brand);
-        color: #0a0a0c;
-        border: none;
-        border-radius: 10px;
-        padding: 11px 0;
-        font-size: 0.88rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-      }
-
-      button.primary:hover {
-        filter: brightness(1.08);
-      }
-
-      button.ghost {
-        width: 100%;
-        margin-top: 10px;
-        background: transparent;
-        color: var(--ink-muted);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 10px 0;
-        font-size: 0.85rem;
-        cursor: pointer;
-        font-family: inherit;
       }
 
       .agent-row {
@@ -306,16 +271,6 @@
         color: #60a5fa;
       }
 
-      .add-toggle {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--brand);
-        font-size: 0.82rem;
-        cursor: pointer;
-        margin-top: 4px;
-      }
-
       .add-form {
         display: none;
         flex-direction: column;
@@ -352,78 +307,80 @@
         <a href="../../docs/adr/0015-device-provisioning.md" style="color: inherit">ADR 0015</a>.
       </p>
 
-      <div class="tabs">
-        <button class="tab is-active" data-tab="wifi">Wi-Fi</button>
-        <button class="tab" data-tab="agents">Agents</button>
+      <div data-tuc-tabs>
+        <div class="tuc-tabs__list">
+          <button class="tuc-tabs__tab">Wi-Fi</button>
+          <button class="tuc-tabs__tab">Agents</button>
+        </div>
+
+        <section class="tuc-tabs__panel">
+          <div class="card">
+            <h2>Choose a network</h2>
+            <p class="hint">Scanned just now. Tap yours, enter the password, connect.</p>
+            <div class="network-list" id="network-list">
+              <div class="network is-selected" data-bars="4">
+                <span class="name">🏠 Home-5G</span>
+                <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i></span>
+              </div>
+              <div class="network" data-bars="3">
+                <span class="name">Studio-2.4</span>
+                <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i><i></i></span>
+              </div>
+              <div class="network" data-bars="2">
+                <span class="name">Guest-Network</span>
+                <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i></i><i></i></span>
+              </div>
+            </div>
+
+            <label for="wifi-password">Password for “Home-5G”</label>
+            <input type="password" id="wifi-password" class="tuc-input" placeholder="••••••••" autocomplete="off" />
+
+            <button class="tuc-btn is-primary is-block" id="wifi-connect">Connect</button>
+          </div>
+        </section>
+
+        <section class="tuc-tabs__panel">
+          <div class="card">
+            <h2>Local — found automatically</h2>
+            <p class="hint">On the same network as this device, no typing needed.</p>
+            <div class="agent-row">
+              <div class="meta">
+                <span class="name">Junior's MacBook Pro</span>
+                <span class="detail">discovered via mDNS · 192.168.1.42</span>
+              </div>
+              <span class="tag local">Local</span>
+            </div>
+            <div class="agent-row">
+              <div class="meta">
+                <span class="name">Office Workstation</span>
+                <span class="detail">discovered via mDNS · 192.168.1.58</span>
+              </div>
+              <span class="tag local">Local</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Remote — added by URL</h2>
+            <p class="hint">Not on this network — a VPS or Docker host running the headless agent.</p>
+            <div class="agent-row">
+              <div class="meta">
+                <span class="name">checksafe-prod</span>
+                <span class="detail">checksafe-prod-espia.toa9ja.easypanel.host</span>
+              </div>
+              <span class="tag remote">Remote</span>
+            </div>
+
+            <button class="tuc-btn is-link is-sm" id="add-toggle" style="padding-left: 0">+ Add a remote agent</button>
+            <div class="add-form" id="add-form">
+              <label for="agent-url">Agent URL</label>
+              <input type="text" id="agent-url" class="tuc-input" placeholder="https://your-vps.example.com" />
+              <label for="agent-token">Token</label>
+              <input type="password" id="agent-token" class="tuc-input" placeholder="ESPIA_TOKEN value" autocomplete="off" />
+              <button class="tuc-btn is-primary is-block" id="agent-add">Add agent</button>
+            </div>
+          </div>
+        </section>
       </div>
-
-      <section class="panel is-active" id="panel-wifi">
-        <div class="card">
-          <h2>Choose a network</h2>
-          <p class="hint">Scanned just now. Tap yours, enter the password, connect.</p>
-          <div class="network-list" id="network-list">
-            <div class="network is-selected" data-bars="4">
-              <span class="name">🏠 Home-5G</span>
-              <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i></span>
-            </div>
-            <div class="network" data-bars="3">
-              <span class="name">Studio-2.4</span>
-              <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i class="bars-on"></i><i></i></span>
-            </div>
-            <div class="network" data-bars="2">
-              <span class="name">Guest-Network</span>
-              <span class="signal"><i class="bars-on"></i><i class="bars-on"></i><i></i><i></i></span>
-            </div>
-          </div>
-
-          <label for="wifi-password">Password for “Home-5G”</label>
-          <input type="password" id="wifi-password" placeholder="••••••••" autocomplete="off" />
-
-          <button class="primary" id="wifi-connect">Connect</button>
-        </div>
-      </section>
-
-      <section class="panel" id="panel-agents">
-        <div class="card">
-          <h2>Local — found automatically</h2>
-          <p class="hint">On the same network as this device, no typing needed.</p>
-          <div class="agent-row">
-            <div class="meta">
-              <span class="name">Junior's MacBook Pro</span>
-              <span class="detail">discovered via mDNS · 192.168.1.42</span>
-            </div>
-            <span class="tag local">Local</span>
-          </div>
-          <div class="agent-row">
-            <div class="meta">
-              <span class="name">Office Workstation</span>
-              <span class="detail">discovered via mDNS · 192.168.1.58</span>
-            </div>
-            <span class="tag local">Local</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>Remote — added by URL</h2>
-          <p class="hint">Not on this network — a VPS or Docker host running the headless agent.</p>
-          <div class="agent-row">
-            <div class="meta">
-              <span class="name">checksafe-prod</span>
-              <span class="detail">checksafe-prod-espia.toa9ja.easypanel.host</span>
-            </div>
-            <span class="tag remote">Remote</span>
-          </div>
-
-          <div class="add-toggle" id="add-toggle">+ Add a remote agent</div>
-          <div class="add-form" id="add-form">
-            <label for="agent-url">Agent URL</label>
-            <input type="text" id="agent-url" placeholder="https://your-vps.example.com" />
-            <label for="agent-token">Token</label>
-            <input type="password" id="agent-token" placeholder="ESPIA_TOKEN value" autocomplete="off" />
-            <button class="primary" id="agent-add">Add agent</button>
-          </div>
-        </div>
-      </section>
 
       <footer>
         Example data, not live — this is a UI preview only; nothing here
@@ -436,16 +393,9 @@
       </footer>
     </main>
 
-    <script>
-      // Tabs
-      document.querySelectorAll(".tab").forEach((tab) => {
-        tab.addEventListener("click", () => {
-          document.querySelectorAll(".tab").forEach((t) => t.classList.remove("is-active"));
-          document.querySelectorAll(".panel").forEach((p) => p.classList.remove("is-active"));
-          tab.classList.add("is-active");
-          document.getElementById(`panel-${tab.dataset.tab}`).classList.add("is-active");
-        });
-      });
+    <script type="module">
+      import { init as initTucano } from "https://cdn.jsdelivr.net/npm/tucano@0.36.0/dist/tucano.esm.js";
+      initTucano(); // wires [data-tuc-tabs] and every other data-tuc-* element on the page
 
       // Network selection
       document.querySelectorAll(".network").forEach((row) => {

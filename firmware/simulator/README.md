@@ -42,12 +42,20 @@ Every button is a preview-only no-op — nothing here submits anywhere,
 saves anything, or talks to a real device. That's still future firmware
 work; this is for judging the UI on its own.
 
-## Why plain HTML, not the agent's own frontend stack
+## Why plain HTML, and where Tucano fits
 
-The desktop agent uses Tailwind and vendors Tucano
-([ADR 0004](../../docs/adr/0004-desktop-agent-stack.md),
-[ADR 0012](../../docs/adr/0012-tucano.md)) — neither is worth pulling in
-here for two files nobody builds or ships; they open directly in a
-browser, on purpose. Colors and spacing are hand-matched to the agent's
-own tokens (`agent/src/input.css`'s `--color-*` custom properties) so the
-two feel like one product, not copied wholesale.
+Neither file has a build step — they open directly in a browser, on
+purpose, since nobody builds or ships them. `display.html` needs nothing
+but a browser; its tiny monochrome UI is hand-rolled canvas drawing; a
+component library wouldn't help there.
+
+`setup.html` loads [Tucano](https://juniorcarlini.github.io/tucano/) from
+jsDelivr's CDN — its tabs, buttons, and inputs — themed via the same
+`--tuc-*` remap the desktop agent uses
+([ADR 0012](../../docs/adr/0012-tucano.md)), pinned to the same version
+(`agent/package.json`). **CDN, not vendored, is a preview-only choice**:
+it needs internet to render with any styling at all. The real
+captive-portal page (once firmware exists) runs on the device's own
+isolated access point, with no path to any CDN — that page will need
+Tucano vendored in, the same way the desktop agent does, not loaded like
+this file is.
