@@ -23,6 +23,19 @@ void drawCentered(int baseline, const char *text) {
     display.drawStr(x, baseline, text);
 }
 
+bool isSmallPanel() {
+    return display.getDisplayHeight() < 64;
+}
+
+// A single centered status line/word — used by every "in progress" screen
+// (WiFi connecting, discovering, errors), so they all read consistently.
+void showStatusScreen(const char *line) {
+    display.clearBuffer();
+    display.setFont(isSmallPanel() ? u8g2_font_4x6_tr : u8g2_font_6x10_tr);
+    drawCentered(isSmallPanel() ? 20 : 34, line);
+    display.sendBuffer();
+}
+
 }  // namespace
 
 void begin() {
@@ -56,6 +69,72 @@ void showBoot(const char *firmwareVersion, const char *boardName) {
 
         display.setFont(u8g2_font_4x6_tr);
         drawCentered(34, version);
+    }
+
+    display.sendBuffer();
+}
+
+void showWifiConnecting() {
+    showStatusScreen("Connecting WiFi...");
+}
+
+void showDiscovering() {
+    showStatusScreen("Finding agent...");
+}
+
+void showConnectionStatus(bool connected) {
+    // Connected has nothing of its own to show — showMetrics takes over
+    // immediately once a session is established. This screen only matters
+    // for the "lost the connection, retrying" gap in between.
+    if (!connected) {
+        showStatusScreen("Reconnecting...");
+    }
+}
+
+void showError(const char *message) {
+    showStatusScreen(message);
+}
+
+// Truncates `text` to fit `maxChars`, marking the cut with an ellipsis
+// character so a long agent name doesn't silently look complete when it
+// isn't. Uses a static buffer — the caller draws immediately, not later.
+const char *truncated(const String &text, size_t maxChars) {
+    static char buf[24];
+    size_t n = min(maxChars, sizeof(buf) - 1);
+    if (text.length() <= n) {
+        text.toCharArray(buf, sizeof(buf));
+        return buf;
+    }
+    text.toCharArray(buf, n);
+    buf[n - 1] = '\x85';  // u8g2's ellipsis glyph in most fonts used here
+    buf[n] = '\0';
+    return buf;
+}
+
+void showMetrics(const MetricsView &metrics, const char *agentName) {
+    display.clearBuffer();
+
+    char cpuLine[24];
+    snprintf(cpuLine, sizeof(cpuLine), "CPU %.0f%%", metrics.cpuUsagePct);
+
+    float memPct = metrics.memoryTotalBytes > 0
+                       ? (100.0f * static_cast<float>(metrics.memoryUsedBytes) / static_cast<float>(metrics.memoryTotalBytes))
+                       : 0.0f;
+    char memLine[24];
+    snprintf(memLine, sizeof(memLine), "RAM %.0f%%", memPct);
+
+    if (isSmallPanel()) {
+        display.setFont(u8g2_font_4x6_tr);
+        drawCentered(9, truncated(agentName, 14));
+        drawCentered(22, cpuLine);
+        drawCentered(34, memLine);
+    } else {
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(14, truncated(agentName, 20));
+
+        display.setFont(u8g2_font_helvB10_tr);
+        drawCentered(38, cpuLine);
+        drawCentered(58, memLine);
     }
 
     display.sendBuffer();

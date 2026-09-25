@@ -1,0 +1,4 @@
+# Real credentials for the build-step-3 hardcoded-WiFi placeholder — see
+# wifi_credentials.h.example. Replaced by the real captive portal (ADR
+# 0015) before this is needed for anything but early bring-up.
+src/wifi_credentials.h
