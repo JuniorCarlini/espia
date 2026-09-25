@@ -2,7 +2,10 @@
 
 Firmware for the ESP32 display that renders data received from the agent.
 
-- **Status:** Early development — shows a boot screen.
+- **Status:** Early development — connects to WiFi (credentials hardcoded
+  for now), discovers an agent, pairs with it (a 6-digit code shown on the
+  device, typed into the agent), and shows its live CPU/memory on screen,
+  reconnecting automatically without re-pairing.
 - **Stack:** [PlatformIO](https://platformio.org/), Arduino framework,
   [U8g2](https://github.com/olikraus/u8g2) for monochrome displays
   ([ADR 0006](../docs/adr/0006-multi-board-firmware.md)).
@@ -57,8 +60,8 @@ pio run -e heltec_wifi_kit_32_v3 -t upload -t monitor
 
 - [x] Boot screen
 - [x] Browser-based UI simulator (screens and setup page, no hardware needed)
-- [ ] Wi-Fi provisioning (captive portal, Improv over USB)
-- [ ] Agent discovery (mDNS, UDP fallback)
-- [ ] WebSocket connection and pairing
-- [ ] Screens: system metrics, Claude plan limits
+- [ ] Wi-Fi provisioning (captive portal, Improv over USB) — hardcoded credentials for now
+- [x] Agent discovery (mDNS, UDP fallback)
+- [x] WebSocket connection and pairing (a 6-digit code shown on the device, typed into the agent)
+- [x] Screens: system metrics (CPU, memory) — Claude plan limits not wired up yet
 - [ ] Screen navigation with the button

@@ -147,3 +147,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   discovers the agent above via mDNS with a UDP fallback, connects over
   WebSocket, and renders its live CPU and memory usage on screen,
   reconnecting with backoff if the connection drops.
+
+- Devices now actually pair (protocol §4.2, ADR 0007) instead of every
+  `hello` being welcomed unconditionally: a device generates a random
+  6-digit code and shows it on its own screen, the agent asks in a new
+  settings-UI dialog for a human to type it in, and only a match issues
+  the device a token — stored on both ends so a later reconnect skips
+  pairing entirely. Verified end to end on the ESP32-C3 board: paired
+  once from its screen, then reconnected silently after restarting the
+  agent. The header's device pill now reflects real pairing state
+  instead of a permanent "not implemented yet" placeholder.

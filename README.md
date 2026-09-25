@@ -21,9 +21,10 @@ for "to watch" — because that's what this does, quietly, from the corner of
 your desk.
 
 > [!WARNING]
-> espia is in early design. The desktop agent below is real and working;
-> the ESP32 firmware and device pairing are still being built. See
-> [Status](#status) for exactly what exists today.
+> espia is in early design. The desktop agent below is real and working,
+> and a real ESP32 can now pair with it and show live metrics — but WiFi
+> setup is still hardcoded (no captive portal yet) and only one device at
+> a time is supported. See [Status](#status) for exactly what exists today.
 
 <p align="center">
   <img src="docs/assets/screenshot-dashboard.png" alt="The espia desktop agent showing live CPU, memory, temperature, Claude usage, disk, network, ambient weather, and a top-processes table" width="820">
@@ -49,9 +50,9 @@ your desk.
 | Desktop agent (macOS) — metrics, Claude usage, weather, settings | **Working**, built with [Tauri](https://tauri.app/) |
 | Headless agent (Linux, for a VPS or Docker host)              | **Working** — see [running it on a VPS](#running-it-on-a-vps-or-docker-host) |
 | Desktop agent (Windows, Linux)                                 | Planned |
-| ESP32 firmware — connects, discovers an agent, shows live CPU/memory. WiFi is hardcoded (no captive portal yet), UI previewable in a [browser simulator](firmware/simulator/) | In progress |
-| Device discovery and a live WebSocket connection | **Working**, on a [tested board](firmware/README.md#supported-boards) — see [ADR 0002](docs/adr/0002-device-discovery.md) |
-| Pairing and multi-agent dashboards | Designed ([ADR 0007](docs/adr/0007-multi-agent-pairing.md), [ADR 0015](docs/adr/0015-device-provisioning.md)), not built — every device is accepted unconditionally for now |
+| ESP32 firmware — connects, discovers and pairs with an agent, shows live CPU/memory. WiFi is hardcoded (no captive portal yet), UI previewable in a [browser simulator](firmware/simulator/) | In progress |
+| Device discovery, pairing, and a live WebSocket connection | **Working**, on a [tested board](firmware/README.md#supported-boards) — see [ADR 0002](docs/adr/0002-device-discovery.md) |
+| Multi-agent dashboards and remote (non-LAN) agents | Designed ([ADR 0007](docs/adr/0007-multi-agent-pairing.md), [ADR 0015](docs/adr/0015-device-provisioning.md)), not built — a device can pair with one agent today |
 
 Every decision behind these pieces — and why — is written down as it's
 made; see [Architecture Decision Records](docs/adr/).
@@ -131,8 +132,8 @@ espia supports several ESP32 boards. See the
 - [ ] GPU metrics (NVIDIA first; AMD and Apple Silicon later)
 - [ ] Claude token usage and cost
 - [ ] Pluggable providers for other AI services
-- [x] ESP32 firmware: discovery and a live WebSocket connection
-- [ ] Pairing and multi-agent dashboards
+- [x] ESP32 firmware: discovery, pairing, and a live WebSocket connection
+- [ ] Multi-agent dashboards and remote (non-LAN) agents
 - [ ] Multiple screens with touch / button navigation
 - [ ] Over-the-air (OTA) firmware updates from the agent
 - [x] In-browser [device UI simulator](firmware/simulator/) for UI
