@@ -92,12 +92,42 @@
         gap: 10px;
       }
 
-      #language-select.tuc-input.tuc-input {
+      /* The real Tucano Select (component-select.md), same as the desktop
+         agent's own language picker (agent/src/main.js) — a themed dropdown
+         panel instead of the OS's native popup. `node.after(this.control)`
+         is how it inserts itself, so the sibling combinator below is the
+         reliable hook, not a generated id. */
+      #language-select + .tuc-select {
         width: auto;
         height: 30px;
-        padding: 0 1.6rem 0 0.55rem;
-        font-size: 0.72rem;
+        padding: 0.25rem 0.6rem;
+        gap: 4px;
         border-radius: 999px;
+        cursor: pointer;
+      }
+
+      #language-select + .tuc-select .tuc-select__values {
+        flex: none;
+        gap: 0;
+        padding: 0;
+      }
+
+      #language-select + .tuc-select .tuc-select__single {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      #language-select + .tuc-select input.tuc-select__search {
+        font-size: 0.72rem;
+      }
+
+      /* The dropdown panel is portalled to <body> by Tucano's Popover, not
+         nested under .tuc-select, so it can't be scoped past the sibling
+         hook above — safe as a bare rule since this is the only Select on
+         the page. */
+      .tuc-select__menu {
+        min-width: 7rem;
       }
 
       .brand .dot {
@@ -357,7 +387,7 @@
           <span class="dot"></span>
           <span>espia-setup</span>
         </div>
-        <select id="language-select" class="tuc-input" aria-label="Language" title="Language">
+        <select id="language-select" aria-label="Language">
           <option value="en">EN</option>
           <option value="pt">PT</option>
           <option value="es">ES</option>
@@ -493,8 +523,14 @@
     </main>
 
     <script type="module">
-      import { init as initTucano } from "https://cdn.jsdelivr.net/npm/tucano@0.36.0/dist/tucano.esm.js";
+      import { init as initTucano, Select as TucanoSelect } from "https://cdn.jsdelivr.net/npm/tucano@0.36.0/dist/tucano.esm.js";
       initTucano(); // wires [data-tuc-tabs] and every other data-tuc-* element on the page
+
+      // A real Select instance, not a native <select> styled to look like a
+      // pill — same component the desktop agent uses for this exact picker
+      // (agent/src/main.js). Its own `change` event on the native <select>
+      // still fires, so the listener below needs no changes.
+      new TucanoSelect("#language-select", { clearable: false });
 
       // Same three languages, same order, as the desktop agent's settings
       // screen (agent/src/i18n.js) — a real (if partial) translation, not
