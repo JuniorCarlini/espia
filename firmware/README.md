@@ -19,6 +19,7 @@ before flashing anything. See [`simulator/README.md`](simulator/README.md).
 | --------------------------------------------------------------------- | ----------------------- | -------------------- | ---------- |
 | [Heltec WiFi Kit 32 (V3)](https://heltec.org/project/wifi-kit32-v3/)  | `heltec_wifi_kit_32_v3` | 0.96" 128x64 OLED    | PRG button |
 | Heltec WiFi Kit 32 (V2)                                               | `heltec_wifi_kit_32_v2` | 0.96" 128x64 OLED    | PRG button |
+| Generic ESP32-C3 0.42" OLED board                                    | `esp32_c3_oled_042`     | 0.42" 72x40 OLED     | BOOT button |
 
 ## Building and flashing
 

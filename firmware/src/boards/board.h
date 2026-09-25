@@ -8,6 +8,11 @@
 //   ESPIA_DISPLAY_TOUCH     1 if the display has touch input, 0 otherwise.
 //   ESPIA_PIN_BUTTON        GPIO of the user button, or -1 if none.
 //
+// Monochrome boards (ESPIA_DISPLAY_MONO 1) also define:
+//   ESPIA_DISPLAY_U8G2_CLASS  The U8g2 constructor class matching the
+//                             panel (constructor signature: rotation,
+//                             reset, clock, data — see ui_mono.cpp).
+//
 // Board-specific pins (display bus, power rails) are defined as needed by
 // the matching UI and hardware modules.
 
@@ -17,6 +22,8 @@
 #include "heltec_wifi_kit_32_v3.h"
 #elif defined(ESPIA_BOARD_HELTEC_WIFI_KIT_32_V2)
 #include "heltec_wifi_kit_32_v2.h"
+#elif defined(ESPIA_BOARD_ESP32_C3_OLED_042)
+#include "esp32_c3_oled_042.h"
 #else
 #error "No board selected. Build with one of the environments in platformio.ini."
 #endif

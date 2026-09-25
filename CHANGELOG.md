@@ -127,3 +127,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   times, then fades into the dashboard once real metrics have loaded.
 
 - Renamed the project from ESPHub to **espia**.
+
+- Added firmware support for a generic ESP32-C3 board with an onboard
+  0.42" 72x40 OLED (hardware-compatible with the Waveshare
+  ESP32-C3-0.42LCD design) — the boot screen now adapts its layout to
+  displays too small for the existing three-line design. Verified on real
+  hardware.
