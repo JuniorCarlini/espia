@@ -87,8 +87,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   per-container CPU and memory usage (sorted highest first) for the
   Docker host it's running on, matching `docker stats`. Opt-in: it needs
   either the real `/var/run/docker.sock` mounted in (root-equivalent
-  control of the whole host) or, recommended, a read-only
-  `docker-socket-proxy` sidecar in front of it — see ADR 0014.
+  control of the whole host) or, recommended, a proxy in front of it —
+  see ADR 0014.
+
+- Added `espia-socket-guard`: a new, minimal binary that's the only thing
+  allowed to touch the real Docker socket, forwarding exactly the two
+  read-only calls `GET /containers` needs and refusing everything else
+  (`create`, `stop`, `exec`, any other API path) with a `403` before it
+  reaches the socket — an in-repo alternative to a third-party proxy
+  image, for anyone who'd rather not trust one for this. See ADR 0014.
 
 - Hardened the headless agent's token check to a constant-time
   comparison, closing a theoretical timing side channel.

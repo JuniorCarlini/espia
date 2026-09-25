@@ -42,12 +42,22 @@ through anything under `/proc`.
   that; it would only have hidden how much access `/containers` actually
   implies.
 - **The client supports an alternative, safer target**: `ESPIA_DOCKER_HOST`
-  points it at a `docker-socket-proxy` sidecar over plain HTTP instead of
-  the real socket (`ESPIA_DOCKER_SOCKET`, still the default). The proxy
-  holds the real socket and only forwards the specific calls `/containers`
-  needs, refusing everything else — `create`, `stop`, `exec`, and the rest
-  come back `403` even if this binary is compromised. This is the
+  points it at a proxy sidecar over plain HTTP instead of the real socket
+  (`ESPIA_DOCKER_SOCKET`, still the default). The proxy holds the real
+  socket and only forwards the specific calls `/containers` needs,
+  refusing everything else — `create`, `stop`, `exec`, and the rest come
+  back `403` even if `espia-headless` itself is compromised. This is the
   recommended way to run it; see the headless README.
+- **That proxy is `espia-socket-guard`, a new binary in this repo**, not a
+  third-party image. A well-known one exists (Tecnativa's
+  `docker-socket-proxy`) and was the first thing tried — it worked, and
+  its own default deny-by-default posture is reasonable — but it's still
+  someone else's published image, with a permission system (dozens of
+  `ALLOW_*`/resource-group env vars) that's more than this needs and one
+  more thing to get right. `espia-socket-guard` forwards exactly two
+  hardcoded paths with no config surface at all: smaller, and fully
+  auditable as part of this project rather than trusted from outside it.
+  Both were verified end to end before making the call.
 
 ## Consequences
 
@@ -68,8 +78,13 @@ through anything under `/proc`.
 - Verified against a real Docker daemon: container list, computed CPU %,
   and memory usage were cross-checked against `docker stats` itself on
   the same host and matched within normal sampling variance. Separately
-  verified the `docker-socket-proxy` path end to end, including that its
-  `403` on write calls actually holds.
+  verified `espia-socket-guard` end to end — the two allowed calls work,
+  and write calls, other API paths, and a path-traversal attempt through
+  the container-id segment all come back `403` before reaching the socket.
+- `espia-socket-guard` is one more thing to build, deploy, and keep in
+  sync as its own container — a real cost against just mounting the
+  socket directly, paid deliberately for not trusting a third party (or a
+  wide-open socket) with root on the host.
 
 ## Alternatives considered
 
@@ -81,6 +96,12 @@ through anything under `/proc`.
   Docker API client, but it's built on `tokio`, which would mean pulling
   an async runtime into a binary whose entire premise ([0013](0013-headless-agent.md))
   is not having one.
+- **Mount the real socket into `espia-headless` directly, no proxy** — the
+  simplest option, and still exactly what `ESPIA_DOCKER_SOCKET` does for
+  anyone who accepts that trade-off. Not the default recommendation once
+  a safer option existed to build.
+- **Tecnativa's `docker-socket-proxy`** — see above; a legitimate,
+  reasonable choice, just not the one made here.
 - **Skip it, keep `/metrics` as the only endpoint** — the safe default,
   and still the right call for anyone who doesn't need per-container
   comparison; `/containers` is opt-in specifically so this stays

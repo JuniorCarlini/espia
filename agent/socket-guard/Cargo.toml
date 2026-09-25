@@ -1,0 +1,25 @@
+[package]
+name = "espia-socket-guard"
+version = "0.1.0"
+description = "A minimal, read-only Docker socket proxy — the only thing standing between a client and the real Docker socket"
+authors = ["espia contributors"]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/JuniorCarlini/espia"
+
+# Deliberately not a member of the `agent` Cargo workspace, and deliberately
+# with one dependency: this is a security-critical component whose whole
+# point is being small enough to read start to finish. It doesn't need
+# espia-core (it never parses Docker's JSON, only forwards bytes) and
+# shouldn't share a dependency graph with anything else for the sake of it.
+# See docs/adr/0014-docker-container-stats.md.
+
+[[bin]]
+name = "espia-socket-guard"
+path = "src/main.rs"
+
+# Not a member of ../Cargo.toml's workspace — see the comment above.
+[workspace]
+
+[dependencies]
+tiny_http = "0.12"

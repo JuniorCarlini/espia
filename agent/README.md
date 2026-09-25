@@ -61,10 +61,13 @@ endpoint instead of a desktop window ([ADR 0013](../docs/adr/0013-headless-agent
 | `src-tauri/src/server/`      | WebSocket server, mDNS, and UDP discovery (planned)      |
 | `src-tauri/tauri.conf.json`  | App configuration (window, bundling, identifier)         |
 | `headless/src/main.rs`       | The headless HTTP server binary ([ADR 0013](../docs/adr/0013-headless-agent.md)) |
+| `socket-guard/src/main.rs`   | Minimal read-only Docker socket proxy for `headless`'s `GET /containers` ([ADR 0014](../docs/adr/0014-docker-container-stats.md)) |
 
 `core`, `src-tauri`, and `headless` are members of one Cargo workspace
 (`agent/Cargo.toml`) — `espia-core` has no Tauri dependency, so both
-binaries depend on it rather than on each other.
+binaries depend on it rather than on each other. `socket-guard` is
+deliberately its own standalone project, not a member of that workspace
+— see its own README for why.
 
 See the [architecture overview](../docs/architecture.md) for how these pieces
 fit together, and the [protocol specification](../protocol/README.md) for

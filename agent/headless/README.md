@@ -90,31 +90,34 @@ multi-tenant Docker infrastructure. Leaving the socket unmounted keeps the
 agent at [ADR 0013](../../docs/adr/0013-headless-agent.md)'s original,
 much smaller blast radius — `/metrics` and `/health` don't need it.
 
-**Recommended: put a read-only [`docker-socket-proxy`](https://github.com/Tecnativa/docker-socket-proxy)
-sidecar in front of the real socket**, instead of mounting it into this
-container directly. The proxy holds the real socket; `espia-headless`
-only ever reaches the proxy over plain HTTP, which refuses anything but
-the container list/stats calls `/containers` needs — even if this binary
-were compromised, an attacker reaches a proxy that returns `403` on
-`create`, `stop`, `exec`, and everything else, not the real Docker API:
+**Recommended: put [`espia-socket-guard`](../socket-guard/README.md) — a
+minimal, read-only proxy that's part of this repo — in front of the real
+socket**, instead of mounting it into this container directly. It holds
+the real socket; `espia-headless` only ever reaches it over plain HTTP,
+and it forwards exactly two hardcoded paths (`GET /containers/json`,
+`GET /containers/<id>/stats`) — everything else, `create`/`stop`/`exec`
+included, comes back `403` before it ever reaches the socket, even if
+`espia-headless` itself were compromised:
 
 ```sh
-docker run -d --name docker-socket-proxy \
-  -e CONTAINERS=1 -e POST=0 \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  tecnativa/docker-socket-proxy
+cd agent/socket-guard
+docker build -t espia-socket-guard .
+docker run -d --name espia-socket-guard -p 2375:2375 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  espia-socket-guard
 
 docker run -d --name espia-headless \
   -p 8080:8080 \
   -e ESPIA_TOKEN="$(openssl rand -hex 32)" \
-  -e ESPIA_DOCKER_HOST=docker-socket-proxy:2375 \
-  --link docker-socket-proxy \
+  -e ESPIA_DOCKER_HOST=espia-socket-guard:2375 \
+  --link espia-socket-guard \
   espia-headless
 ```
 
 (On Easypanel, or anything else where containers share a network by
 service name already, skip `--link` and just point `ESPIA_DOCKER_HOST` at
-the proxy service's name — e.g. `docker-socket-proxy:2375`.) Verified
-locally: `POST /containers/create` and `POST /containers/<id>/stop`
-against the proxy both return `403`, while `GET /containers/json` and
-`GET /containers/<id>/stats` — everything `/containers` needs — work.
+the proxy service's name — e.g. `espia-socket-guard:2375`.) `espia-headless`'s
+own container never touches `/var/run/docker.sock` at all in this setup.
+See [`socket-guard/README.md`](../socket-guard/README.md) for what's
+actually verified to hold, and why it's a small binary of ours rather than
+a third-party image.
