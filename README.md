@@ -49,8 +49,9 @@ your desk.
 | Desktop agent (macOS) — metrics, Claude usage, weather, settings | **Working**, built with [Tauri](https://tauri.app/) |
 | Headless agent (Linux, for a VPS or Docker host)              | **Working** — see [running it on a VPS](#running-it-on-a-vps-or-docker-host) |
 | Desktop agent (Windows, Linux)                                 | Planned |
-| ESP32 firmware — boot screen only, UI previewable in a [browser simulator](firmware/simulator/) | In progress |
-| Device discovery, pairing, and live dashboards                 | Designed ([ADR 0002](docs/adr/0002-device-discovery.md), [ADR 0007](docs/adr/0007-multi-agent-pairing.md), [ADR 0015](docs/adr/0015-device-provisioning.md)), not built |
+| ESP32 firmware — connects, discovers an agent, shows live CPU/memory. WiFi is hardcoded (no captive portal yet), UI previewable in a [browser simulator](firmware/simulator/) | In progress |
+| Device discovery and a live WebSocket connection | **Working**, on a [tested board](firmware/README.md#supported-boards) — see [ADR 0002](docs/adr/0002-device-discovery.md) |
+| Pairing and multi-agent dashboards | Designed ([ADR 0007](docs/adr/0007-multi-agent-pairing.md), [ADR 0015](docs/adr/0015-device-provisioning.md)), not built — every device is accepted unconditionally for now |
 
 Every decision behind these pieces — and why — is written down as it's
 made; see [Architecture Decision Records](docs/adr/).
@@ -130,7 +131,8 @@ espia supports several ESP32 boards. See the
 - [ ] GPU metrics (NVIDIA first; AMD and Apple Silicon later)
 - [ ] Claude token usage and cost
 - [ ] Pluggable providers for other AI services
-- [ ] ESP32 firmware: discovery, pairing, and live dashboards
+- [x] ESP32 firmware: discovery and a live WebSocket connection
+- [ ] Pairing and multi-agent dashboards
 - [ ] Multiple screens with touch / button navigation
 - [ ] Over-the-air (OTA) firmware updates from the agent
 - [x] In-browser [device UI simulator](firmware/simulator/) for UI

@@ -133,3 +133,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ESP32-C3-0.42LCD design) — the boot screen now adapts its layout to
   displays too small for the existing three-line design. Verified on real
   hardware.
+
+- The desktop agent now runs the device protocol's server side
+  (ADR 0002, ADR 0003): a WebSocket endpoint (`0.0.0.0:47801/v1/ws`)
+  streaming live `metrics` once a device says `hello`, plus mDNS
+  (`_espia._tcp`) and UDP broadcast (port 47800) so a device never needs
+  an IP typed anywhere. Every `hello` is accepted unconditionally for
+  now — real pairing is a following change.
+
+- The firmware now has a real networking stack, verified end to end on
+  the ESP32-C3 board above: it joins WiFi (credentials hardcoded for the
+  moment, no captive portal yet — ADR 0015 covers the real design),
+  discovers the agent above via mDNS with a UDP fallback, connects over
+  WebSocket, and renders its live CPU and memory usage on screen,
+  reconnecting with backoff if the connection drops.

@@ -58,7 +58,7 @@ endpoint instead of a desktop window ([ADR 0013](../docs/adr/0013-headless-agent
 | `core/src/providers/`        | AI usage and external-data providers (`claude`, `weather`) |
 | `core/src/settings.rs`       | Persisted agent settings (language, weather location override) |
 | `src-tauri/src/`             | The Tauri desktop GUI binary — Tauri commands wrapping `espia-core`, window setup |
-| `src-tauri/src/server/`      | WebSocket server, mDNS, and UDP discovery (planned)      |
+| `src-tauri/src/server/`      | WebSocket server, mDNS advertisement, and UDP discovery — device pairing isn't implemented yet |
 | `src-tauri/tauri.conf.json`  | App configuration (window, bundling, identifier)         |
 | `headless/src/main.rs`       | The headless HTTP server binary ([ADR 0013](../docs/adr/0013-headless-agent.md)) |
 | `socket-guard/src/main.rs`   | Minimal read-only Docker socket proxy for `headless`'s `GET /containers` ([ADR 0014](../docs/adr/0014-docker-container-stats.md)) |
