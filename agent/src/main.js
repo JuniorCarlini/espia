@@ -67,6 +67,17 @@ const claudeConnectButtonEl = document.querySelector("#claude-connect-button");
 const claudeDisconnectButtonEl = document.querySelector("#claude-disconnect-button");
 const claudeErrorEl = document.querySelector("#claude-error");
 
+const devicePillEl = document.querySelector("#device-pill");
+const devicePillDotEl = document.querySelector("#device-pill-dot");
+const devicePillLabelEl = document.querySelector("#device-pill-label");
+
+const pairingDialogEl = document.querySelector("#pairing-dialog");
+const pairingDeviceInfoEl = document.querySelector("#pairing-device-info");
+const pairingCodeInputEl = document.querySelector("#pairing-code-input");
+const pairingErrorEl = document.querySelector("#pairing-error");
+const pairingConfirmButtonEl = document.querySelector("#pairing-confirm-button");
+const pairingCancelButtonEl = document.querySelector("#pairing-cancel-button");
+
 const weatherCityEl = document.querySelector("#weather-city");
 const weatherIconEl = document.querySelector("#weather-icon");
 const weatherIconShapeEl = document.querySelector("#weather-icon-shape");
@@ -355,6 +366,11 @@ async function refreshMetrics() {
 // updates its status line, not every second.
 
 const CLAUDE_POLL_INTERVAL_MS = 5000;
+// Same cadence as Claude's status: not performance-sensitive, and a
+// pairing confirmation lands on the Rust side asynchronously (the WS
+// task's own code check, not the `respond_to_pairing` call itself), so
+// polling catches it shortly after rather than needing an exact signal.
+const DEVICE_POLL_INTERVAL_MS = 5000;
 
 function formatRelativeTime(ms) {
   const seconds = Math.round((Date.now() - ms) / 1000);
@@ -498,6 +514,88 @@ claudeDisconnectButtonEl.addEventListener("click", async () => {
     claudeDisconnectButtonEl.disabled = false;
   }
 });
+
+// --- Device pairing (protocol §4.2) --------------------------------------
+//
+// The dialog opens from a Tauri event a device connection triggers on the
+// Rust side (server/pairing.rs), not from a button here — there's nothing
+// for the person to click to start it. Its payload never includes the
+// device's actual code: only whoever is standing in front of the device's
+// own screen can see it, and typing it in here is what proves that.
+
+let pairingRequestId = null;
+
+async function respondToPairing(requestId, typedCode) {
+  try {
+    await invoke("respond_to_pairing", { requestId, typedCode });
+  } catch (error) {
+    console.error("Could not respond to a pairing request:", error);
+  }
+}
+
+function openPairingDialog({ request_id: requestId, device_id: deviceId, board, firmware }) {
+  pairingRequestId = requestId;
+  pairingDeviceInfoEl.textContent = `${board} (${deviceId}) — firmware ${firmware}`;
+  pairingCodeInputEl.value = "";
+  pairingErrorEl.hidden = true;
+  pairingDialogEl._tucano.open();
+  pairingCodeInputEl.focus();
+}
+
+// A native <dialog> fires `close` however it closed — Escape, a backdrop
+// click, the × button, or our own `.close()` call below. Confirm already
+// clears `pairingRequestId` before closing, so by the time this runs for
+// *that* case there's nothing left to cancel; every other case still has a
+// pending id, and all of them are a cancel.
+pairingDialogEl.addEventListener("close", () => {
+  if (pairingRequestId === null) return;
+  const requestId = pairingRequestId;
+  pairingRequestId = null;
+  respondToPairing(requestId, null);
+});
+
+pairingConfirmButtonEl.addEventListener("click", () => {
+  const typedCode = pairingCodeInputEl.value.trim();
+  if (!/^\d{6}$/.test(typedCode)) {
+    pairingErrorEl.textContent = t("pairing.invalidCode");
+    pairingErrorEl.hidden = false;
+    return;
+  }
+
+  const requestId = pairingRequestId;
+  pairingRequestId = null; // so the `close` handler above doesn't also cancel
+  respondToPairing(requestId, typedCode);
+  pairingDialogEl._tucano.close();
+});
+
+pairingCancelButtonEl.addEventListener("click", () => {
+  pairingDialogEl._tucano.close(); // the `close` handler above sends the cancel
+});
+
+// Reflects real pairings in the header pill — replaces what used to be a
+// permanent "not implemented yet" placeholder now that pairing is real.
+async function refreshPairedDevices() {
+  let devices;
+  try {
+    devices = await invoke("list_paired_devices");
+  } catch (error) {
+    console.error("Could not load paired devices:", error);
+    return;
+  }
+
+  devicePillDotEl.classList.toggle("is-connected", devices.length > 0);
+
+  if (devices.length === 0) {
+    devicePillLabelEl.textContent = t("header.noDevicePaired");
+    devicePillEl.title = "";
+  } else if (devices.length === 1) {
+    devicePillLabelEl.textContent = t("header.devicePaired", { name: devices[0].board });
+    devicePillEl.title = devices[0].board;
+  } else {
+    devicePillLabelEl.textContent = t("header.devicesPaired", { count: devices.length });
+    devicePillEl.title = devices.map((d) => d.board).join(", ");
+  }
+}
 
 // --- Ambient Weather ----------------------------------------------------
 //
@@ -722,6 +820,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   // by this point and this won't double-init them.
   initTucano();
 
+  window.__TAURI__.event.listen("device-pair-request", (event) => openPairingDialog(event.payload));
+
   try {
     const settings = await invoke("get_settings");
     setCurrentLanguage(settings.language);
@@ -740,6 +840,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   refreshWeather();
   setInterval(refreshWeather, WEATHER_POLL_INTERVAL_MS);
+
+  refreshPairedDevices();
+  setInterval(refreshPairedDevices, DEVICE_POLL_INTERVAL_MS);
 
   // Whichever takes longer: the boot animation always plays out in full, and
   // the splash never lifts before the dashboard behind it has real data.

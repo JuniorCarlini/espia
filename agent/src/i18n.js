@@ -11,7 +11,8 @@ export const DEFAULT_LANGUAGE = "en";
 
 const en = {
   "header.noDevicePaired": "No device paired",
-  "header.noDevicePairedTooltip": "Pairing with an ESP32 device isn't implemented yet — see the protocol spec",
+  "header.devicePaired": "{name} paired",
+  "header.devicesPaired": "{count} devices paired",
   "header.settings": "Settings",
 
   "common.reading": "Reading…",
@@ -98,11 +99,20 @@ const en = {
   "settings.locationAutomatic": "Automatic (based on your IP)",
   "settings.locationEmpty": "No matches.",
   "settings.locationSearching": "Searching…",
+
+  "pairing.title": "Pair a device",
+  "pairing.description": "A device wants to connect. Type the 6-digit code shown on its own screen to confirm it's yours.",
+  "pairing.codeLabel": "Code shown on the device",
+  "pairing.confirm": "Confirm",
+  "pairing.cancel": "Cancel",
+  "pairing.invalidCode": "Enter the 6-digit code shown on the device.",
+  "pairing.rejected": "That code didn't match — try again from the device's own screen.",
 };
 
 const pt = {
   "header.noDevicePaired": "Nenhum dispositivo pareado",
-  "header.noDevicePairedTooltip": "O pareamento com um dispositivo ESP32 ainda não foi implementado — veja a especificação do protocolo",
+  "header.devicePaired": "{name} pareado",
+  "header.devicesPaired": "{count} dispositivos pareados",
   "header.settings": "Configurações",
 
   "common.reading": "Carregando…",
@@ -189,11 +199,20 @@ const pt = {
   "settings.locationAutomatic": "Automática (baseada no seu IP)",
   "settings.locationEmpty": "Nenhum resultado.",
   "settings.locationSearching": "Buscando…",
+
+  "pairing.title": "Parear um dispositivo",
+  "pairing.description": "Um dispositivo quer se conectar. Digite o código de 6 dígitos mostrado na tela dele para confirmar que é seu.",
+  "pairing.codeLabel": "Código mostrado no dispositivo",
+  "pairing.confirm": "Confirmar",
+  "pairing.cancel": "Cancelar",
+  "pairing.invalidCode": "Digite o código de 6 dígitos mostrado no dispositivo.",
+  "pairing.rejected": "Esse código não bateu — tente de novo olhando a tela do dispositivo.",
 };
 
 const es = {
   "header.noDevicePaired": "Ningún dispositivo emparejado",
-  "header.noDevicePairedTooltip": "El emparejamiento con un dispositivo ESP32 aún no está implementado — vea la especificación del protocolo",
+  "header.devicePaired": "{name} emparejado",
+  "header.devicesPaired": "{count} dispositivos emparejados",
   "header.settings": "Configuración",
 
   "common.reading": "Cargando…",
@@ -280,6 +299,14 @@ const es = {
   "settings.locationAutomatic": "Automática (basada en tu IP)",
   "settings.locationEmpty": "Sin resultados.",
   "settings.locationSearching": "Buscando…",
+
+  "pairing.title": "Emparejar un dispositivo",
+  "pairing.description": "Un dispositivo quiere conectarse. Escribe el código de 6 dígitos que aparece en su propia pantalla para confirmar que es tuyo.",
+  "pairing.codeLabel": "Código mostrado en el dispositivo",
+  "pairing.confirm": "Confirmar",
+  "pairing.cancel": "Cancelar",
+  "pairing.invalidCode": "Escribe el código de 6 dígitos que aparece en el dispositivo.",
+  "pairing.rejected": "Ese código no coincidió — inténtalo de nuevo mirando la pantalla del dispositivo.",
 };
 
 const dictionaries = { en, pt, es };

@@ -106,17 +106,10 @@
           <img src="./assets/wordmark.png" alt="espia" class="h-6 w-auto" />
         </div>
         <div class="flex items-center gap-2">
-          <a
-            href="https://github.com/JuniorCarlini/espia"
-            target="_blank"
-            rel="noreferrer"
-            class="pill"
-            data-i18n-title="header.noDevicePairedTooltip"
-            title="Pairing with an ESP32 device isn't implemented yet — see the protocol spec"
-          >
-            <span class="pill-dot"></span>
-            <span data-i18n="header.noDevicePaired">No device paired</span>
-          </a>
+          <div class="pill" id="device-pill" title="">
+            <span class="pill-dot" id="device-pill-dot"></span>
+            <span id="device-pill-label" data-i18n="header.noDevicePaired">No device paired</span>
+          </div>
           <!-- Opens the dialog below by itself — Tucano's modal auto-init
                (called once in main.js) wires `data-tuc-modal` triggers to
                the `<dialog>` they name, no click handler needed here. -->
@@ -384,6 +377,52 @@
             </button>
             <p class="tuc-error" id="claude-error" hidden></p>
           </div>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Pairing dialog (protocol §4.2): opened from main.js when the
+         device-pair-request Tauri event arrives, not by a data-tuc-modal
+         trigger — there's no button for it, a device asks for it. The
+         6-digit code itself is never sent here; typing what's shown on the
+         device's own screen is what proves whoever's using this dialog is
+         standing in front of it. -->
+    <dialog class="tuc-modal is-sm" id="pairing-dialog">
+      <div class="tuc-modal__panel">
+        <div class="tuc-modal__top">
+          <div class="tuc-modal__header">
+            <h2 class="tuc-modal__title" data-i18n="pairing.title">Pair a device</h2>
+          </div>
+          <button type="button" class="tuc-modal__close tuc-btn is-ghost is-icon is-sm" data-tuc-modal-close data-i18n-title="settings.close" title="Close" aria-label="Close">
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="tuc-modal__body space-y-5">
+          <p class="tuc-hint" data-i18n="pairing.description">
+            A device wants to connect. Type the 6-digit code shown on its own screen to confirm it's yours.
+          </p>
+          <p class="tuc-hint" id="pairing-device-info"></p>
+
+          <div>
+            <label class="tuc-label" for="pairing-code-input" data-i18n="pairing.codeLabel">Code shown on the device</label>
+            <input
+              type="text"
+              id="pairing-code-input"
+              class="tuc-input text-center tracking-[0.3em]"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              maxlength="6"
+              autocomplete="off"
+              placeholder="000000"
+            />
+          </div>
+          <p class="tuc-error" id="pairing-error" hidden></p>
+
+          <button id="pairing-confirm-button" type="button" class="tuc-btn is-primary is-block" data-i18n="pairing.confirm">Confirm</button>
+          <button id="pairing-cancel-button" type="button" class="tuc-btn is-outline is-block" data-i18n="pairing.cancel">Cancel</button>
         </div>
       </div>
     </dialog>

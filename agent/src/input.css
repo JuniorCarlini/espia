@@ -60,6 +60,10 @@
   .pill-dot {
     @apply h-1.5 w-1.5 rounded-full bg-ink-faint;
   }
+
+  .pill-dot.is-connected {
+    @apply bg-brand;
+  }
 }
 
 /* Boot splash — see boot.js. Random per-dot delay comes from --rd/--rblink,
