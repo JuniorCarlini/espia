@@ -16,8 +16,18 @@ void begin();
 // Shows the boot screen with the firmware version and board name.
 void showBoot(const char *firmwareVersion, const char *boardName);
 
+// Shown while the device's own setup access point is active — a human
+// needs to join it from a phone to configure WiFi (ADR 0015).
+void showWifiSetup(const char *apName);
+
 // Shown while connecting to WiFi with already-stored credentials.
 void showWifiConnecting();
+
+// Shown briefly right after connecting: the address of the bounded
+// post-connect config window (see net::provisioning::beginLanConfigWindow)
+// and the one-time access code that window requires before it will accept
+// any Wi-Fi or agent-pairing change.
+void showConfigAddress(const char *address, const char *code);
 
 // Shown while searching for agents on the network (protocol §1.1-§1.2).
 void showDiscovering();

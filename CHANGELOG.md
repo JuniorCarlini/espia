@@ -157,3 +157,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   once from its screen, then reconnected silently after restarting the
   agent. The header's device pill now reflects real pairing state
   instead of a permanent "not implemented yet" placeholder.
+
+- Implemented device provisioning (ADR 0015): a factory-fresh device (or
+  one with WiFi forgotten via a long button-press) boots into its own
+  "espia-setup" access point and serves a captive-portal page to join a
+  real network. Once connected, the device briefly opens the same
+  configuration page on its real LAN address for pairing with more than
+  one agent (ADR 0007) — local agents found by discovery with a tap, or a
+  remote `espia-headless` agent (ADR 0013) by URL and token.
+
+- Added an access code (ADR 0016) to that post-connect LAN configuration
+  page: the device shows a one-time 6-digit code on its own screen
+  alongside the page's address, and every Wi-Fi or agent-pairing change
+  now requires it. Without this, anyone else already on the same network
+  during the few minutes that page is open could have silently rewritten
+  the device's WiFi credentials or pointed it at an attacker-controlled
+  "remote agent".

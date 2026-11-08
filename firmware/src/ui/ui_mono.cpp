@@ -74,8 +74,55 @@ void showBoot(const char *firmwareVersion, const char *boardName) {
     display.sendBuffer();
 }
 
+void showWifiSetup(const char *apName) {
+    display.clearBuffer();
+
+    if (isSmallPanel()) {
+        display.setFont(u8g2_font_4x6_tr);
+        drawCentered(9, "Join WiFi:");
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(22, apName);
+        display.setFont(u8g2_font_4x6_tr);
+        drawCentered(34, "then open a browser");
+    } else {
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(18, "Join this WiFi:");
+        display.setFont(u8g2_font_helvB10_tr);
+        drawCentered(38, apName);
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(58, "then open a browser");
+    }
+
+    display.sendBuffer();
+}
+
 void showWifiConnecting() {
     showStatusScreen("Connecting WiFi...");
+}
+
+void showConfigAddress(const char *address, const char *code) {
+    display.clearBuffer();
+
+    char codeLine[24];
+    snprintf(codeLine, sizeof(codeLine), "Code: %s", code);
+
+    if (isSmallPanel()) {
+        display.setFont(u8g2_font_4x6_tr);
+        drawCentered(9, "Config page:");
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(22, address);
+        display.setFont(u8g2_font_4x6_tr);
+        drawCentered(34, codeLine);
+    } else {
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(18, "Config page open:");
+        display.setFont(u8g2_font_helvB10_tr);
+        drawCentered(38, address);
+        display.setFont(u8g2_font_6x10_tr);
+        drawCentered(58, codeLine);
+    }
+
+    display.sendBuffer();
 }
 
 void showDiscovering() {

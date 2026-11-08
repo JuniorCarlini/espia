@@ -44,6 +44,12 @@ void AgentLink::loop() {
     ws_.loop();
 }
 
+void AgentLink::stop() {
+    ws_.disconnect();
+    status_ = LinkStatus::Disconnected;
+    failedAttempts_ = 0;
+}
+
 bool AgentLink::hasNewMetrics() {
     bool had = hasNewMetrics_;
     hasNewMetrics_ = false;

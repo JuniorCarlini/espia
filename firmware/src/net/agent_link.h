@@ -35,6 +35,12 @@ class AgentLink {
 
     LinkStatus status() const { return status_; }
     bool isConnected() const { return status_ == LinkStatus::Connected; }
+    const String &agentId() const { return agent_.agentId; }
+
+    // Stops this link deliberately (as opposed to a connection drop) —
+    // used when a pairing is forgotten. Safe to call even if not
+    // currently connected.
+    void stop();
 
     // True once, right after a fresh `metrics` frame has been parsed —
     // clears itself, so a caller polling every loop() doesn't redraw the

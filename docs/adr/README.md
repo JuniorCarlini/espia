@@ -24,3 +24,4 @@ available number.
 | [0013](0013-headless-agent.md)             | A headless HTTP agent for VPS and Docker hosts | Accepted |
 | [0014](0014-docker-container-stats.md)     | Per-container stats via the Docker socket | Accepted |
 | [0015](0015-device-provisioning.md)        | Device provisioning: Wi-Fi setup and adding remote agents | Accepted |
+| [0016](0016-lan-config-access-code.md)     | An access code for the post-connect LAN config page | Accepted |
